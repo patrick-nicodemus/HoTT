@@ -79,9 +79,7 @@ Definition iff (A B : Type) := prod (A -> B) (B -> A).
 
 Notation "A <-> B" := (iff A B) : type_scope.
 
-(** Another way of interpreting booleans as propositions, 
-    see BooleanReflection.v. 
-    (We cannot define this here because equality is not yet defined.) *)
+(** Another way of interpreting booleans as propositions *)
 
 (* Definition is_true b := b = true. *)
 
