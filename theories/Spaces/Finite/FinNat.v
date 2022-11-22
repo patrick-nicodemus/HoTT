@@ -1,13 +1,13 @@
 Require Import
   HoTT.Basics
-  HoTT.Basics.BooleanReflection
   HoTT.Types
   HoTT.HSet
   HoTT.Spaces.Nat
   HoTT.Spaces.Nat.Arithmetic
   HoTT.Spaces.Finite.Fin
   HoTT.Classes.interfaces.abstract_algebra
-  HoTT.DProp.
+  HoTT.DProp
+  HoTT.BoundedSearch.
 
 Local Open Scope nat_scope.
 
@@ -220,94 +220,136 @@ Definition equiv_fin_finnat (n : nat) : Fin n <~> FinNat n
 
 
 Local Definition nat_of_ord {n : nat} : FinNat n -> nat := pr1.
-
 Coercion nat_of_ord : FinNat >-> nat.
+Check Decidable.
 
-Section WellFounded.
-  (* 
-     Our main goal in this section is to prove that if P is a decidable predicate on 
-     finnat n, then either there is a *least i* in finnnat n such that P(i) holds, 
-     or for all i, P i is false.
-     Compare theories/bounded_search.v, except that we do not assume funext.
-     For this theorem we require the order structure of [n] to speak of the "least i";  
-     it is not clear how such a theorem would translate to a set merely equivalent to Fin n.
-   *)
+Section finnat_well_founded.
+  Context (n : nat).
+  Context (P : FinNat n -> Type).
+  Context (H : forall k : FinNat n, Decidable (P k)).
 
-  (* Search from n+1 - k to n+1, decrementing k,
-     for the least a in this range (inclusive of n+1-k) such that P(a) holds.
-   *)
-  Fixpoint finnat_wf_helper (n k : nat) {P : FinNat n.+1 -> Type}
-    `{T : forall k, Decidable (P k)} : { a : FinNat n.+1 & P a } + Unit :=
-    match k with
-    | O => inr tt
-    | S k' =>  match (T (n - k'; _ )) with
-               | inl holds => inl ((n - k'; mixed_trans1 _ _ _ sub_less (n_lt_Sn _)); holds)
-               | inr _ => finnat_wf_helper n k'
-               end
-    end.
+  Definition finnat_to_nat_predicate :=
+    fun k : nat => match @leq_dichot k.+1 n with
+                            | inl a => P (k ; a)
+                            | inr _ => Empty
+                   end.
+  Local Notation P' := finnat_to_nat_predicate.
 
-  Lemma on_finnat_wf_helper (n : nat) {P : FinNat n.+1 -> Type}
-      {T : forall k, Decidable (P k)} :
-  forall k :nat, match (finnat_wf_helper n k) with
-                 | inl a => (forall b : FinNat n.+1, P b -> (n.+1 - k <= b.1) -> a.1 <= b.1)
-                 | inr _ => (forall b : FinNat n.+1, P b -> (n.+1 - k > b.1))
-                             end.
+  Lemma to_nat_predicate_decidable : forall n : nat, Decidable (P' n).
   Proof.
-    intro k; induction k; [ now intros [? ?] ? |].
-    simpl finnat_wf_helper.
-    destruct (T (n - k; _ )) as [tt | ff]; [ done |].
-    destruct (finnat_wf_helper n k) as [val | none].
-    + intros b pb ineq.
-      assert (((n.+1 - k <= b) + (n - k = b))%type) as L. {
-        specialize IHk with b. set (t := IHk pb).
-        simpl in ineq. destruct (leq_split ineq);
-          [left; exact (leq_trans (nataddsub_comm_ineq_lemma n k) l) | right; assumption].
-      } 
-      destruct L as [ll | rr]; intros;  [now apply IHk | contradiction ff ].
-      set (j := (n - k; _)). assert (RW : j = b). { now (apply (injective proj1)). }
-      symmetry in RW; now destruct RW.
-    + intros b pf. simpl. specialize IHk with b; set (t := IHk pf).
-      assert ( (n - k > b) + (n - k = b)) as L. {
-        set (z:= i_lt_n_sum_m _ _ _ t);
-          set (mk:= (@nataddpreserveslt _ _ k t)).
-        rewrite ( (natminuspluseq _ _ z)) in mk.
-        apply leq_S_n, (@natsubpreservesleq _ _  k) in mk.
-         rewrite add_n_sub_n_eq in mk.
-         destruct (leq_split mk); auto with nat.
-      }
-      destruct L; [ done | contradiction ff ].
-      set (QQ :=(n-k;_)).
-      assert (QQ = b) as RW by (now apply (injective proj1)); now rewrite RW.
-  Qed.
+    intro m; unfold P'; destruct leq_dichot; [ apply H | exact _ ]. 
+  Defined.
 
-  (* The following is a kind of combination LEM and well-foundedness theorem:
-     For P a decidable predicate on [n], either there is a *minimal* k such that P(k),
-     or there is no k in [n] such that P k.
-     
-   *)
+  Local Lemma to_nat_predicate_equivalence : forall k, P k <-> P' k.1.
+  Proof.
+    intro k.
+    assert (R: forall l : k.1 < n, k = (k.1 ; l)) by (intro l; apply (injective pr1); done).
+    split; unfold P'; destruct leq_dichot; intro pf.
+    - by destruct (R l).
+    - destruct k; auto with nat.
+    - by destruct (symmetric_paths _ _ (R l)).
+    - by apply Empty_rect.
+  Defined.
   
-Proposition finnat_wf {n : nat} (P : FinNat n -> Type) (T : forall k, Decidable (P k))
-    : ~{ k : FinNat n & P k } +
-        { x : FinNat n & (P x) /\ (forall x', P x' -> (x.1 <= x'.1))}.
+  Lemma hexists_iff_to_nat_predicate_hexists : (hexists P) <-> (hexists P').
+  Proof.
+    split; intro M; strip_truncations; apply tr.
+    - destruct M as [x pf]. exists x.1. by apply to_nat_predicate_equivalence.
+    - destruct M as [x pf]. unfold P' in pf. destruct leq_dichot in pf.
+      + by exists (x; l).
+                  + by apply Empty_rect.
+  Defined.
+
+  Locate merely_inhabited_iff_inhabited_decidable.
+  Proposition finnat_well_founded (H' : hexists P)
+    : { k : FinNat n & (P k * forall k' : FinNat n, P k' -> k <= k')%type }.
+  Proof.
+    assert (t := BoundedSearch.n_to_min_n P' to_nat_predicate_decidable).
+    assert (X := (fst hexists_iff_to_nat_predicate_hexists) H').
+    assert (z: BoundedSearch.min_n_Type P'). {
+      assert (Q := ishpropmin_n P' X); strip_truncations.
+      destruct X as [x pf]; apply (t x pf).
+    }
+    destruct z as [x [Px minimal]].
+    assert (xbd : x < n). {
+      strip_truncations.
+      destruct H' as [[yval ybd] pf].
+      apply (mixed_trans1 _ yval); [ | assumption ].
+      apply minimal.
+      by apply to_nat_predicate_equivalence in pf.
+    }
+    exists (x ; xbd); split.
+    + apply merely_inhabited_iff_inhabited_stable.
+      strip_truncations; apply tr.
+      by apply to_nat_predicate_equivalence.
+    + intros k' pfk'. strip_truncations.
+      apply minimal. by apply to_nat_predicate_equivalence.
+  Defined.
+
+End finnat_well_founded.
+
+Proposition cases_incl_last (n : nat) (Q : forall x : FinNat n.+1, Type) 
+  : (forall k : FinNat n, Q (incl_finnat k)) -> Q (last_finnat n) -> forall k, Q k.
 Proof.
-  destruct n;
-    [ left; intros [a _]; destruct a; contradiction (not_lt_n_0 _ _); done |].
-  assert (j := on_finnat_wf_helper n n.+1).
-  destruct (finnat_wf_helper n n.+1) as [s | ?].
-  - right. refine (s.1; (s.2,  _)).
-    intro x'; specialize j with x';
-      (* This line can be abstracted without losing anything. *)
-      abstract(intro pf; apply j in pf; [ assumption | autorewrite with nat; auto with nat]).
-  - left. abstract(intros [k p]; specialize j with k; apply j in p; autorewrite with nat in p;
-    contradiction (not_lt_n_0 _ p)).
+  intros A B k.
+  destruct k as [kval kbd].
+  assert (kbd' := kbd). apply leq_S_n in kbd'. destruct kbd' as [ | m kbd'].
+  - assert (RW: (kval; kbd) = (last_finnat kval)) by (now apply (path_sigma_hprop));
+      destruct RW; assumption.
+  - assert (RW: incl_finnat (kval; leq_S_n' _ _ kbd') = (kval ; kbd)) by
+      (now apply (path_sigma_hprop)); destruct RW; auto.
 Defined.
 
-(* Global Instance disj_dec {n : nat}  {P : FinNat n -> Type} {T : forall k, Decidable (P k)} : *)
-(*   Decidable { k : FinNat n & P k}. *)
-(* Proof. *)
-(*   destruct (stdfinset_wf _ _). *)
-(*   - now right. *)
-(*   - left; exact (s.1; fst s.2). *)
-(* Defined. *)
+Proposition DeMorgan1 (n : nat) (P : forall k : FinNat n, Type) `{forall k, Decidable (P k)}
+  : (~ forall x : FinNat n, P x) -> exists x : FinNat n, ~ P x.
+Proof.
+  induction n as [| n0];
+    [ intro z; contradiction z; intro p; destruct p; auto with nat |].
+  intro z. destruct (dec (P (last_finnat n0)));
+    [ | exists (last_finnat n0); done ].
+  set (P' := fun l : FinNat n0 => P (incl_finnat l)).
+  specialize IHn0 with P'.
+  cut ({x : FinNat n0 & ~ P' x});
+    [ intros [x pfx]; exists (incl_finnat x); done |].
+  apply (IHn0 _). 
+  intro m. apply z.
+  exact (cases_incl_last _ P m p).
+Defined.
 
-End WellFounded.
+Proposition finnat_co_well_founded (n : nat) (P : FinNat n -> Type)
+  (H : forall k, Decidable (P k)) (H' : ~ forall x, P x)
+  : { k : FinNat n & (~ P k * forall k' : FinNat n, k < k' -> P k')%type }.
+Proof.
+  destruct n as [ |m]; [ contradiction H'; intros [xval xbd]; auto with nat |].
+  set (Q := fun k : FinNat m.+1 => ~ P (sub_finnat (last_finnat m) k.1)).
+  apply DeMorgan1 in H'; [ | done].
+  assert (heq : hexists Q). {
+    apply tr. destruct H' as [val pf].
+    exists (sub_finnat (last_finnat m) val). unfold Q; simpl.
+    assert (RW : val = (sub_finnat (last_finnat m) (m - val)) ). {
+      apply (injective pr1); simpl.
+      apply symmetry, ineq_sub; exact (leq_S_n _ _ val.2).
+    } destruct RW; assumption.
+  } 
+  assert (EJ := finnat_well_founded _ Q _ heq); destruct EJ as [y [holds gtest]].
+  exists (sub_finnat (last_finnat m) y.1); split; [ assumption |].
+  intro k'; simpl; intro ineq.
+  apply stable.
+  intro ne. set (z := sub_finnat (last_finnat m) k').
+  specialize gtest with z.
+  unshelve refine (let M := gtest _ in _).
+  { 
+    assert (RW : k' = (sub_finnat (last_finnat m) z)). {
+      apply path_sigma_hprop; symmetry; simpl; apply ineq_sub;
+        destruct k' as [kval' kbd']. exact (leq_S_n _ _ kbd').
+    }
+    symmetry in RW; clearbody z; clear gtest ineq.
+    destruct RW in ne; apply ne.
+  } clearbody M; clear gtest.
+  unfold z in M; simpl in M.
+  apply natpmswap4 in ineq.
+  apply (natpmswap3 _ ) in M;
+    [ | destruct k' as [kval' kbd']; exact (leq_S_n _ _ kbd')].
+  destruct (nat_add_comm k' y.1) in ineq.
+  auto with nat.
+Defined.

@@ -3,125 +3,29 @@ Require Import Basics.Tactics.
 Require Import Types.Bool.
 Require Import Types.Sum.
 Require Import Basics.Utf8.
-
 Require Import Basics.Nat.
 Require Import Basics.Decidable.
-Require Import Basics.BooleanReflection.
-Require Import Basics.SProp.
-  
 Require Import Spaces.Nat.
 
 Local Close Scope trunc_scope.
-
-Section Sleq.
-  Scheme leq_sind := Induction for leq Sort SProp.
-
-  Fixpoint Sleq (n m : nat) : SProp :=
-    match n with
-    | O => sUnit
-    | S n' => match m with
-              | O => sEmpty
-              | S m' => Sleq n' m'
-              end
-    end.
-
-  Proposition Sleq_refl (n : nat) : Sleq n n.
-  Proof.
-    induction n; done.
-  Defined.
-
-  Proposition Sleq_S (n m: nat) : Sleq n m -> Sleq n m.+1.
-  Proof.
-    revert m.
-    induction n; [ done |].
-    simpl. intro m; destruct m; simpl; [ done | apply IHn ].
-  Defined.
-
-  Proposition leq_implies_Sleq (n m : nat) : Nat.leq n m -> Sleq n m.
-  Proof.
-    intro ineq; induction ineq.
-    + apply Sleq_refl.
-    + by apply Sleq_S.
-  Defined.
-
-  Proposition Sleq_implies_leq (n m : nat) : Sleq n m -> Nat.leq n m.
-  Proof.
-    revert m; induction n.
-    + intros; apply leq_0_n.
-    + intros m H. simpl in H. destruct m; [ destruct H |].
-      apply leq_S_n', IHn; exact H.
-  Defined.
-
-  Check leq_rect.
-  Definition Sleq_rect : 
-      forall (n : nat) (P : forall m : nat, Sleq n m -> Type),
-        P n (Sleq_refl n) ->
-        (forall (m : nat) (l : Sleq n m), P m l -> P (m.+1)%nat (Sleq_S n m l)) ->
-        forall (m : nat) (l : Sleq n m), P m l.
-  Proof. intros n P diag succ m l.
-         change l with (leq_implies_Sleq n m (Sleq_implies_leq n m l)).
-         induction (Sleq_implies_leq n m l).
-         - apply diag.
-         - apply succ, IHl0, leq_implies_Sleq; assumption.
-  Defined.
-
-  Definition Sleq_rec := Sleq_rect.
-End Sleq.
-  
 Local Open Scope nat_scope.
+
 Ltac nat_absurd_trivial :=
+  unfold ">" in *; unfold "<" in *;
   match goal with
-  | [ H : ?n < 0 |- _ ] => contradiction (not_lt_n_0 n)
-  | [ H : 0 > ?n |- _ ] => contradiction (not_lt_n_0 n)
-  | [ H : ?n > ?n |- _ ] => contradiction (not_lt_n_n n)
-  | [ H : ?n < ?n |- _ ] => contradiction (not_lt_n_n n)
+  | [ H : ?n.+1 <= 0 |- _ ] => contradiction (not_leq_Sn_0 n H)
+  | [ H : ?n.+1 <= ?n |- _ ] => contradiction (not_lt_n_n n H)
+  | [ H1 : ?k.+1 <= ?n |- _ ] =>
+      match goal with
+      | [ H2 : ?n <= ?k |- _] =>
+          contradiction (not_leq_Sn_n k (@leq_trans _ _ _ H1 H2))
+      end
   end.
 
 Global Hint Resolve not_lt_n_n : nat.
 Global Hint Resolve not_lt_n_0 : nat.
 Global Hint Resolve not_leq_Sn_0 : nat.
 Global Hint Extern 2 => nat_absurd_trivial : nat.
-
-(* Proposition iff_reflect (P : Type) (b : Bool) : (reflect P b) <-> (P <-> b = true). *)
-(*   Proof. *)
-(*     split. *)
-(*     - intro r; destruct r. *)
-(*       + split; done. *)
-(*       + split; [ contradiction | discriminate ]. *)
-(*     - intro H; destruct H as [if1 if2]. *)
-(*       destruct b. *)
-(*       + apply ReflectT, if2; reflexivity. *)
-(*       + apply ReflectF; intro p; apply if1 in p; discriminate. *)
-(*   Defined. *)
-  
-(*   Proposition refl_tofalse (A : Type) (b : Bool) (p : reflect A b) : ~ A -> b = false. *)
-(*   Proof. *)
-(*     destruct p; done. *)
-(*   Defined. *)
-
-(*   Proposition refl_totrue (A : Type) (b : Bool) (p : reflect A b) : A -> b = true. *)
-(*   Proof. *)
-(*     destruct p; done. *)
-(*   Defined. *)
-
-(*   Definition decBool (A : Type) `{Decidable A} : Bool := *)
-(*     match dec A with *)
-(*     | inl _ => true *)
-(*     | inr _ => false *)
-(*     end. *)
-
-(*   Proposition decP (A : Type) `{Decidable A} : reflect A (decBool A). *)
-(*   Proof. *)
-(*     unfold decBool; destruct dec; constructor; assumption. *)
-(*   Defined. *)
-  
-(*   Proposition decBoolSum (A B: Type) `{H0 : Decidable A} `{H1 : Decidable B} : *)
-(*     decBool (A + B) = orb (decBool A) (decBool B). *)
-(*   Proof. *)
-(*     unfold decBool. *)
-(*     unfold dec, decidable_sum at 1, dec. destruct H0, H1; done. *)
-(*   Qed. *)
-  
 
 Proposition eq_nat_sym : forall n m : nat,  n = m -> m = n.
 Proof.
@@ -130,11 +34,7 @@ Defined.
 
 Global Hint Resolve eq_nat_sym | 5 : nat.
 Global Hint Resolve leq_0_n : nat.
-
-
 Global Hint Resolve leq_trans : nat.
-
-
 
 Local Definition transitive_paths_nat := @transitive_paths nat.
 
@@ -163,38 +63,24 @@ Fixpoint leq_bool (n m : nat) : Bool :=
             end
   end.
 
-Proposition leqP (n m : nat) : reflect (n <= m) (leq_bool n m).
+Variant leq_reflect (n m : nat) : Bool -> Type :=
+  | leqbool1 : (n <= m) -> leq_reflect n m true
+  | leqbool2 : (m < n) -> leq_reflect n m false.
+
+Proposition leqP (n m : nat) : leq_reflect n m (leq_bool n m).
 Proof.
-  apply iff_reflect.
-  split.
-  - revert m. induction n.
-    + intros; auto with nat; reflexivity.
-    + intros m l. simpl in l. destruct m. { contradiction (not_leq_Sn_0 n). }
-      apply leq_S_n in l; simpl; auto with nat.
-  - revert m. induction n.
-    + auto with nat.
-    + intros m; simpl. destruct m. { intro H.
-                                     discriminate.
-      }
-      
-      intro eq; apply IHn in eq. apply leq_S_n'; assumption.
+  destruct (@leq_dichot n m) as [leq | gt].
+  - assert (RW : true = leq_bool n m).
+    { revert m leq; induction n; [ reflexivity |].
+      destruct m; [ | simpl; intro H; apply leq_S_n in H]; auto with nat. }
+    destruct RW. by constructor.
+  - assert (RW : false = leq_bool n m).
+    { unfold ">", "<" in gt. revert m gt;
+        induction n; [ auto with nat |].
+      intros m ineq; apply leq_S_n in ineq. simpl.
+      destruct m; [ reflexivity | by apply IHn]. }
+    destruct RW. by constructor.
 Defined.
-
-(* Variant leq_reflect (n m : nat) : Bool -> Type := *)
-(*   | leqbool1 : (n <= m) -> leq_reflect n m true  *)
-(*   | leqbool2 : (m < n) -> leq_reflect n m false. *)
-
-(* Proposition leqP (n m : nat) : leq_reflect n m (leq_bool n m). *)
-(* Proof. *)
-(*   assert (H := (leq_bool_equivalence n m)). *)
-(*   destruct H as [fst  snd]. *)
-(*   destruct (@leq_dichot n m) as [leq | gt]. *)
-(*   - apply snd in leq. rewrite leq. constructor. apply fst in leq. done. *)
-(*   - remember (leq_bool n m) as z eqn:zeqn. destruct (leq_bool n m). *)
-(*     + contradiction (not_lt_n_n n). refine (@leq_trans _ (S m) _ _ gt). *)
-(*       by apply leq_S_n', fst, symmetry. *)
-(*     + destruct zeqn. by constructor. *)
-(* Qed. *)
 
 Proposition not_lt_implies_geq {n m : nat} : ~(n < m) -> m <= n.
 Proof.
@@ -970,8 +856,7 @@ Proof.
     + change k.+1 with (1 + k). rewrite nat_add_comm.
       rewrite subsubadd, predeqminus1. 
       apply left_handed_leq_S.
-      apply not_leq_implies_gt in g.
-      apply lt_sub_gt_0 in g. 
+      apply lt_sub_gt_0 in g.       
       now rewrite (S_predn (n - k) 0 _).
 Qed.
 
