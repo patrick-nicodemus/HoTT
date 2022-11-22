@@ -300,9 +300,45 @@ Proof.
       (now apply (path_sigma_hprop)); destruct RW; auto.
 Defined.
 
-Proposition DeMorgan1 (n : nat) (P : forall k : FinNat n, Type) `{forall k, Decidable (P k)}
-  : (~ forall x : FinNat n, P x) -> exists x : FinNat n, ~ P x.
+Global Instance decidable_forall_finnat (n : nat) (P : forall k : FinNat n, Type)
+  `{forall k, Decidable (P k)}
+  : Decidable (forall k, P k).
 Proof.
+  induction n; [ left ; intro k; destruct k; now auto with nat |].
+  specialize IHn with (fun k => P (incl_finnat k)).
+  assert (IHn := IHn _).
+  destruct IHn as [Pincl | notPincl], (dec (P (last_finnat n))) as [Pn | notPn].
+  + left. now apply cases_incl_last.
+  + right; auto.
+  + right; intro Q. contradiction notPincl. intro k. apply (Q (incl_finnat k)).
+  + right. intro Q. by contradiction notPn. 
+Defined.
+
+Global Instance decidable_forall_exists (n : nat) (P : forall k : FinNat n, Type)
+  `{forall k, Decidable (P k)}
+  : Decidable (exists k, P k).
+Proof.
+  induction n; [ right; intros [[? xbd] ?]; auto with nat |].
+  specialize IHn with (fun k => P (incl_finnat k)); assert (IHn := IHn _).
+  destruct IHn as [[x pfx] | notPincl].
+  - left. exists (incl_finnat x); exact pfx.
+  - destruct (dec (P (last_finnat n))) as [| not_Plast].
+    + left; exists (last_finnat n); assumption.
+    + right; intros [x pfx]. destruct x as [xval xbd].
+      destruct (leq_S_n _ _ xbd) as [ | m gt].
+      * contradiction not_Plast.
+        assert (RW: ((xval; xbd) = last_finnat xval)) by
+          (now apply path_sigma_hprop); destruct RW; assumption.
+      * contradiction notPincl.
+        exists (xval; leq_S_n' _ _  gt).
+        assert (RW : ((xval; xbd) = incl_finnat (xval; leq_S_n' _ _ _))) by
+          (now apply path_sigma_hprop); destruct RW; assumption.
+Defined.
+  
+Proposition DeMorgan1 (n : nat) (P : forall k : FinNat n, Type) `{forall k, Decidable (P k)}
+  : (~ forall x : FinNat n, P x) <-> exists x : FinNat n, ~ P x.
+Proof.
+  split; [ | intros [? npx] ?; by contradiction npx ] .
   induction n as [| n0];
     [ intro z; contradiction z; intro p; destruct p; auto with nat |].
   intro z. destruct (dec (P (last_finnat n0)));
