@@ -344,11 +344,10 @@ Section jections.
 
 End jections.
 
-Global Instance isinj_idmap A : @IsInjective A A idmap
-  := fun x y => idmap.
+Global Instance isinj_idmap A : @IsInjective A A idmap := fun x y => idmap.
 
 #[export]
-Hint Unfold IsInjective : typeclass_instances.
+  Hint Unfold IsInjective : typeclass_instances.
 
 #[export]
 Instance isinjective_mapinO_tr {A B : Type} (f : A -> B)

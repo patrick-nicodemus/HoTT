@@ -1,4 +1,4 @@
-Require Import HoTT.Basics HoTT.Types.
+Require Import HoTT.Basics HoTT.Types HoTT.Types.Bool.
 Require Import HoTT.Truncations.
 Require Import HoTT.Spaces.Nat.
 
@@ -91,7 +91,6 @@ Section bounded_search.
     destruct prop_n_to_min_n as [n pl]. destruct pl as [p _].
     exact (n; fst merely_inhabited_iff_inhabited_stable p).
   Defined.
-
 End bounded_search.
 
 Section bounded_search_alt_type.
