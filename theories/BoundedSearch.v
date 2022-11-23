@@ -1,4 +1,4 @@
-Require Import HoTT.Basics HoTT.Types HoTT.Types.Bool.
+Require Import HoTT.Basics HoTT.Types.
 Require Import HoTT.Truncations.
 Require Import HoTT.Spaces.Nat.
 
