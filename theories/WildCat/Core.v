@@ -25,20 +25,22 @@ Definition graph_hfiber {B : Type} {C : Graph.type}
   (F : B -> C) (c : C)
   := {b : B & F b $-> c}.
 
+Module ZeroOneCat.
 (** ** 0-categorical structures *)
 
 (** A wild (0,1)-category has 1-morphisms and operations on them, but no coherence. *)
-Class Is01Cat (A : Graph.type) :=
-{
-  Id  : forall (a : A), a $-> a;
-  cat_comp : forall (a b c : A), (b $-> c) -> (a $-> b) -> (a $-> c);
-}.
+  Class Is01Cat (A : Type) `{IsGraph A} :=
+    {
+      Id  : forall (a : A), a $-> a;
+      cat_comp :
+      forall (a b c : A), (b $-> c) -> (a $-> b) -> (a $-> c);
+    }.
 
-Arguments cat_comp {A} _ {a b c}.
-Notation "g $o f" := (cat_comp g f).
+  Arguments cat_comp {A}  {a b c}.
+  Notation "g $o f" := (cat_comp g f).
 
 (** Currently, Coq requires module names to start with a letter.  The concept of "letter" is very broadly construed, and the acceptable character set "non-exhaustively includes Latin, Greek, Gothic, Cyrillic, Arabic, Hebrew, Georgian, Hangul, Hiragana and Katakana characters, CJK ideographs, mathematical letter-like symbols and non-breaking space" *)
-Module ZeroOneCat.
+
   
   Structure type := Pack
     { sort : Type;
@@ -47,15 +49,23 @@ Module ZeroOneCat.
     }.
 
   Module Exports.
-    
-  Coercion Graph.sort : Graph.type >-> Sortclass.
+    Coercion sort : type >-> Sortclass.
+    #[export] Existing Instance is_graph.
+    #[export] Existing Instance is01cat.
+    Notation "01Cattype" := type.
+  End Exports.
+End ZeroOneCat.
 
+Export ZeroOneCat.Exports.
 
-Definition cat_postcomp {A} `{Is01Cat A} (a : A) {b c : A} (g : b $-> c)
+Definition cat_postcomp {A : 01Cattype}
+  (a : A) {b c : A} (g : b $-> c)
   : (a $-> b) -> (a $-> c)
   := cat_comp g.
 
-Definition cat_precomp {A} `{Is01Cat A} {a b : A} (c : A) (f : a $-> b)
+
+Definition cat_precomp {A : 01Cattype}
+  {a b : A} (c : A) (f : a $-> b)
   : (b $-> c) -> (a $-> c)
   := fun g => g $o f.
 
