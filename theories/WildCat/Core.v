@@ -7,26 +7,49 @@ Require Import Basics.
 (** ** Directed graphs *)
 
 Class IsGraph (A : Type) :=
-{
-  Hom : A -> A -> Type
-}.
+  {
+    Hom : A -> A -> Type
+  }.
+
+Module Graph.
+  Structure type := Pack { sort :> Type;
+                           is_graph : IsGraph sort }.
+End Graph.
 
 Notation "a $-> b" := (Hom a b).
 
-Definition graph_hfiber {B C : Type} `{IsGraph C} (F : B -> C) (c : C)
+Coercion Graph.sort : Graph.type >-> Sortclass.
+#[export] Existing Instance Graph.is_graph.
+
+Definition graph_hfiber {B : Type} {C : Graph.type}
+  (F : B -> C) (c : C)
   := {b : B & F b $-> c}.
 
 (** ** 0-categorical structures *)
 
 (** A wild (0,1)-category has 1-morphisms and operations on them, but no coherence. *)
-Class Is01Cat (A : Type) `{IsGraph A} :=
+Class Is01Cat (A : Graph.type) :=
 {
   Id  : forall (a : A), a $-> a;
   cat_comp : forall (a b c : A), (b $-> c) -> (a $-> b) -> (a $-> c);
 }.
 
-Arguments cat_comp {A _ _ a b c} _ _.
+Arguments cat_comp {A} _ {a b c}.
 Notation "g $o f" := (cat_comp g f).
+
+(** Currently, Coq requires module names to start with a letter.  The concept of "letter" is very broadly construed, and the acceptable character set "non-exhaustively includes Latin, Greek, Gothic, Cyrillic, Arabic, Hebrew, Georgian, Hangul, Hiragana and Katakana characters, CJK ideographs, mathematical letter-like symbols and non-breaking space" *)
+Module ZeroOneCat.
+  
+  Structure type := Pack
+    { sort : Type;
+      is_graph : IsGraph sort;
+      is01cat : Is01Cat (Graph.Pack sort is_graph)
+    }.
+
+  Module Exports.
+    
+  Coercion Graph.sort : Graph.type >-> Sortclass.
+
 
 Definition cat_postcomp {A} `{Is01Cat A} (a : A) {b c : A} (g : b $-> c)
   : (a $-> b) -> (a $-> c)
