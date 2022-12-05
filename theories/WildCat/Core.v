@@ -13,7 +13,7 @@ Class IsGraph (A : Type) :=
 
 Module Graph.
   Structure type := Pack { sort :> Type;
-                           is_graph : IsGraph sort }.
+                            is_graph : IsGraph sort }.
 End Graph.
 
 Notation "a $-> b" := (Hom a b).
@@ -21,11 +21,13 @@ Notation "a $-> b" := (Hom a b).
 Coercion Graph.sort : Graph.type >-> Sortclass.
 #[export] Existing Instance Graph.is_graph.
 
+Canonical Build_Graph (A : Type) `(H : IsGraph A) : Graph.type
+  := Graph.Pack A H.
+
 Definition graph_hfiber {B : Type} {C : Graph.type}
   (F : B -> C) (c : C)
   := {b : B & F b $-> c}.
 
-Module ZeroOneCat.
 (** ** 0-categorical structures *)
 
 (** A wild (0,1)-category has 1-morphisms and operations on them, but no coherence. *)
@@ -35,36 +37,40 @@ Module ZeroOneCat.
       cat_comp :
       forall (a b c : A), (b $-> c) -> (a $-> b) -> (a $-> c);
     }.
-
-  Arguments cat_comp {A}  {a b c}.
+  
+  Arguments cat_comp {A _ _ a b c}.
   Notation "g $o f" := (cat_comp g f).
-
+Module ZeroOneCat.
 (** Currently, Coq requires module names to start with a letter.  The concept of "letter" is very broadly construed, and the acceptable character set "non-exhaustively includes Latin, Greek, Gothic, Cyrillic, Arabic, Hebrew, Georgian, Hangul, Hiragana and Katakana characters, CJK ideographs, mathematical letter-like symbols and non-breaking space" *)
 
-  
-  Structure type := Pack
-    { sort : Type;
-      is_graph : IsGraph sort;
-      is01cat : Is01Cat (Graph.Pack sort is_graph)
-    }.
+  Structure type :=
+    Pack
+      {
+        sort : Type;
+        is_graph : IsGraph sort;
+        is01cat : Is01Cat sort
+      }.
 
   Module Exports.
     Coercion sort : type >-> Sortclass.
     #[export] Existing Instance is_graph.
     #[export] Existing Instance is01cat.
-    Notation "01Cattype" := type.
+    Notation "01Cat" := type.
   End Exports.
 End ZeroOneCat.
 
-Export ZeroOneCat.Exports.
+Canonical Build_ZeroOneCat (A : Type) {H : IsGraph A}
+  {H0 : Is01Cat A} := ZeroOneCat.Pack A H H0.
 
-Definition cat_postcomp {A : 01Cattype}
+Export ZeroOneCat.Exports.
+Print ZeroOneCat.type.
+
+Definition cat_postcomp {A : 01Cat}
   (a : A) {b c : A} (g : b $-> c)
   : (a $-> b) -> (a $-> c)
   := cat_comp g.
 
-
-Definition cat_precomp {A : 01Cattype}
+Definition cat_precomp {A : 01Cat}
   {a b : A} (c : A) (f : a $-> b)
   : (b $-> c) -> (a $-> c)
   := fun g => g $o f.
@@ -73,41 +79,64 @@ Definition cat_precomp {A : 01Cattype}
 Class Is0Gpd (A : Type) `{Is01Cat A} :=
   { gpd_rev : forall {a b : A}, (a $-> b) -> (b $-> a) }.
 
-Definition GpdHom {A} `{Is0Gpd A} (a b : A) := a $-> b.
-Notation "a $== b" := (GpdHom a b).
+Module ZeroGpd.
+  Structure type := Pack
+    { sort : Type;
+      is_graph : IsGraph sort;
+      is01cat : Is01Cat sort;
+      is0gpd : Is0Gpd sort
+    }.
 
-Global Instance reflexive_GpdHom {A} `{Is0Gpd A}
-  : Reflexive GpdHom
+  Module Exports.
+    (* #[reversible] *)
+    Coercion sort : type >-> Sortclass.
+    #[export] Existing Instance is_graph.
+    #[export] Existing Instance is01cat.
+    #[export] Existing Instance is0gpd.
+    Notation "0Gpd" := type.
+    Definition GpdHom {A : 0Gpd} (a b : A) := a $-> b.
+    Notation "a $== b" := (GpdHom a b).
+  End Exports.
+End ZeroGpd.
+
+Canonical Build_Gpd (A : Type) {H : IsGraph A} {H0 : Is01Cat A}
+  {H1 : Is0Gpd A} := ZeroGpd.Pack A H H0 H1.
+
+Export ZeroGpd.Exports.
+
+Global Instance reflexive_GpdHom {A : 0Gpd}
+  : Reflexive (@GpdHom A)
   := fun a => Id a.
 
-Global Instance reflexive_Hom {A} `{Is01Cat A}
-  : Reflexive Hom
+Global Instance reflexive_Hom {A : 01Cat}
+  : Reflexive (@Hom A _)
   := fun a => Id a.
 
-Definition gpd_comp {A} `{Is0Gpd A} {a b c : A}
+Definition gpd_comp {A : 0Gpd} {a b c : A}
   : (a $== b) -> (b $== c) -> (a $== c)
   := fun p q => q $o p.
+
 Infix "$@" := gpd_comp.
 
-Global Instance transitive_GpdHom {A} `{Is0Gpd A}
-  : Transitive GpdHom
+Global Instance transitive_GpdHom {A : 0Gpd} 
+  : Transitive (@GpdHom A)
   := fun a b c f g => f $@ g.
 
-Global Instance transitive_Hom {A} `{Is01Cat A}
-  : Transitive Hom
+Global Instance transitive_Hom {A : 01Cat}
+  : Transitive (@Hom A _)
   := fun a b c f g => g $o f.
 
 Notation "p ^$" := (gpd_rev p).
 
-Global Instance symmetric_GpdHom {A} `{Is0Gpd A}
-  : Symmetric GpdHom
+Global Instance symmetric_GpdHom {A : 0Gpd}
+  : Symmetric (@GpdHom A)
   := fun a b f => f^$.
 
-Global Instance symmetric_GpdHom' {A} `{Is0Gpd A}
-  : Symmetric Hom
+Global Instance symmetric_GpdHom' {A : 01Cat} `{Is0Gpd A}
+  : Symmetric (@Hom A _)
   := fun a b f => f^$.
 
-Definition GpdHom_path {A} `{Is0Gpd A} {a b : A} (p : a = b)
+Definition GpdHom_path {A : 0Gpd} {a b : A} (p : a = b)
   : a $== b.
 Proof.
   destruct p; apply Id.
@@ -117,6 +146,25 @@ Defined.
 Class Is0Functor {A B : Type} `{IsGraph A} `{IsGraph B} (F : A -> B)
   := { fmap : forall (a b : A) (f : a $-> b), F a $-> F b }.
 
+Module ZeroFunctor.
+  Structure ZeroFunctor (A  : Graph.type) (B : Graph.type) :=
+    Pack {
+        underlying_map : A -> B;
+        is0functor : Is0Functor underlying_map
+      } .
+  Module Exports.
+    (* #[reversible] *)
+    Coercion underlying_map : ZeroFunctor >-> Funclass.
+    #[export] Existing Instance is0functor.
+    Notation "0Functor" := ZeroFunctor.
+  End Exports.
+End ZeroFunctor.
+
+Export ZeroFunctor.Exports.
+Canonical Build_ZeroFunctor (A B: Type)
+  {H :IsGraph A} {H0 :IsGraph B}
+  (F : A -> B) {H1 : Is0Functor F} := ZeroFunctor.Pack (Graph.Pack A _) (Graph.Pack B _) F H1.
+
 Arguments fmap {A B isgraph_A isgraph_B} F {is0functor_F a b} f : rename.
 
 Class Is2Graph (A : Type) `{IsGraph A}
@@ -124,14 +172,37 @@ Class Is2Graph (A : Type) `{IsGraph A}
 Global Existing Instance isgraph_hom | 20.
 #[global] Typeclasses Transparent Is2Graph.
 
+Module TwoGraph.
+  Structure TwoGraph :=
+    Pack {
+        sort : Type;
+        isGraph : IsGraph sort;
+        is2Graph : Is2Graph sort 
+      }.
+  Module Exports.
+    Coercion sort : TwoGraph >-> Sortclass.
+    #[export] Existing Instance isGraph.
+    #[export] Existing Instance is2Graph.
+    Notation "2Graph" := TwoGraph.
+  End Exports.
+End TwoGraph.
+
+Export TwoGraph.Exports.
+
 (** ** Wild 1-categorical structures *)
+
+
+
 Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
 {
   is01cat_hom : forall (a b : A), Is01Cat (a $-> b) ;
   is0gpd_hom : forall (a b : A), Is0Gpd (a $-> b) ;
-  is0functor_postcomp : forall (a b c : A) (g : b $-> c), Is0Functor (cat_postcomp a g) ;
-  is0functor_precomp : forall (a b c : A) (f : a $-> b), Is0Functor (cat_precomp c f) ;
-  cat_assoc : forall (a b c d : A) (f : a $-> b) (g : b $-> c) (h : c $-> d),
+  is0functor_postcomp : forall (a b c : A) (g : b $-> c),
+    Is0Functor (cat_postcomp a g) ;
+  is0functor_precomp : forall (a b c : A) (f : a $-> b),
+    Is0Functor (cat_precomp c f) ;
+  cat_assoc :
+  forall (a b c d : A) (f : a $-> b) (g : b $-> c) (h : c $-> d),
     (h $o g) $o f $== h $o (g $o f);
   cat_idl : forall (a b : A) (f : a $-> b), Id b $o f $== f;
   cat_idr : forall (a b : A) (f : a $-> b), f $o Id a $== f;
@@ -141,59 +212,86 @@ Global Existing Instance is01cat_hom.
 Global Existing Instance is0gpd_hom.
 Global Existing Instance is0functor_postcomp.
 Global Existing Instance is0functor_precomp.
+
 Arguments cat_assoc {_ _ _ _ _ _ _ _ _} f g h.
 Arguments cat_idl {_ _ _ _ _ _ _} f.
 Arguments cat_idr {_ _ _ _ _ _ _} f.
 
-Definition cat_assoc_opp {A : Type} `{Is1Cat A}
+Module OneCat.
+  Structure type := Pack {
+      sort : Type;
+      isGraph : IsGraph sort;
+      is2Graph : Is2Graph sort;
+      is01Cat : Is01Cat sort;
+      is1Cat : Is1Cat sort
+  }.
+
+  Module Exports.
+    Coercion sort : type >-> Sortclass.
+    #[export] Existing Instance isGraph.
+    #[export] Existing Instance is2Graph.
+    #[export] Existing Instance is01Cat.
+    #[export] Existing Instance is1Cat.
+    Notation "1Cat" := type.
+  End Exports.
+End OneCat.
+
+Export OneCat.Exports.
+
+Canonical ZeroOneCatOfOneCat (A : 1Cat) : ZeroOneCat.type :=
+  ZeroOneCat.Pack (OneCat.sort A) _ _ .
+
+Print ZeroOneCatOfOneCat.
+
+Check @is0gpd_hom.
+Canonical Hom_Gpd {A : 1Cat} (a b : A) : 0Gpd
+  := ZeroGpd.Pack (a $-> b) _ _ (@is0gpd_hom A _ _ _ _ a b).
+
+Definition cat_assoc_opp {A : 1Cat}
            {a b c d : A} (f : a $-> b) (g : b $-> c) (h : c $-> d)
   : h $o (g $o f) $== (h $o g) $o f
   := (cat_assoc f g h)^$.
 
-(*
-Definition Comp2 {A} `{Is1Cat A} {a b c : A}
-           {f g : a $-> b} {h k : b $-> c}
-           (q : h $-> k) (p : f $-> g)
-  : (h $o f $-> k $o g)
-  := ??
+Check @cat_postcomp.
 
-Infix "$o@" := Comp2.
-*)
+(* Canonical Build_OneCat (A : Type) `{Hk : Is1Cat A} := *)
+(*   OneCat.Pack A _ _ _ Hk. *)
 
-Definition cat_postwhisker {A} `{Is1Cat A} {a b c : A}
+Definition cat_postwhisker {A : 1Cat} {a b c : A}
            {f g : a $-> b} (h : b $-> c) (p : f $== g)
   : h $o f $== h $o g
   := fmap (cat_postcomp a h) p.
 Notation "h $@L p" := (cat_postwhisker h p).
 
-Definition cat_prewhisker {A} `{Is1Cat A} {a b c : A}
-           {f g : b $-> c} (p : f $== g) (h : a $-> b)
+Definition cat_prewhisker {A : 1Cat} {a b c : A}
+  {f g : b $-> c} (p : f $== g) (h : a $-> b)
   : f $o h $== g $o h
   := fmap (cat_precomp c h) p.
 Notation "p $@R h" := (cat_prewhisker p h).
 
-Definition Monic {A} `{Is1Cat A} {b c: A} (f : b $-> c)
+Definition Monic {A : 1Cat} {b c: A} (f : b $-> c)
   := forall a (g h : a $-> b), f $o g $== f $o h -> g $== h.
 
-Definition Epic {A} `{Is1Cat A} {a b : A} (f : a $-> b)
+Definition Epic {A : 1Cat} {a b : A} (f : a $-> b)
   := forall c (g h : b $-> c), g $o f $== h $o f -> g $== h.
 
 (** Section might be a clearer name but it's better to avoid confusion with Coq keywords. *)
 
-Record SectionOf {A} `{Is1Cat A} {a b : A} (f : a $-> b) :=
+Record SectionOf {A : 1Cat} {a b : A} (f : a $-> b) :=
   {
     comp_right_inverse : b $-> a;
     is_section : f $o comp_right_inverse $== Id b
   }.
 
-Record RetractionOf {A} `{Is1Cat A} {a b : A} (f : a $-> b) :=
+Record RetractionOf {A : 1Cat} {a b : A} (f : a $-> b) :=
   {
     comp_left_inverse : b $-> a;
     is_retraction : comp_left_inverse $o f $== Id a
   }.
 
 (** Often, the coherences are actually equalities rather than homotopies. *)
-Class Is1Cat_Strong (A : Type)`{!IsGraph A, !Is2Graph A, !Is01Cat A} := 
+Class Is1Cat_Strong (A : Type)
+  `{!IsGraph A, !Is2Graph A, !Is01Cat A} := 
 {
   is01cat_hom_strong : forall (a b : A), Is01Cat (a $-> b) ;
   is0gpd_hom_strong : forall (a b : A), Is0Gpd (a $-> b) ;
@@ -208,16 +306,37 @@ Class Is1Cat_Strong (A : Type)`{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
   cat_idr_strong : forall (a b : A) (f : a $-> b), f $o Id a = f ;
 }.
 
+Module Strong1Cat.
+  Structure type :=
+    Pack {
+        sort : Type;
+        isGraph : IsGraph sort;
+        is2Graph : Is2Graph sort;
+        is01Cat : Is01Cat sort;
+        is01Cat_Strong : Is1Cat_Strong sort
+      }.
+  Module Exports.
+    Coercion sort : type >-> Sortclass.
+    #[export] Existing Instance isGraph.
+    #[export] Existing Instance is2Graph.
+    #[export] Existing Instance is01Cat.
+    #[export] Existing Instance is01Cat_Strong.
+    Notation Strong1Cat := type.
+  End Exports.
+End Strong1Cat.
+
+Export Strong1Cat.Exports.
+
 Arguments cat_assoc_strong {_ _ _ _ _ _ _ _ _} f g h.
 Arguments cat_idl_strong {_ _ _ _ _ _ _} f.
 Arguments cat_idr_strong {_ _ _ _ _ _ _} f.
 
-Definition cat_assoc_opp_strong {A : Type} `{Is1Cat_Strong A}
+Definition cat_assoc_opp_strong {A : Strong1Cat}
            {a b c d : A} (f : a $-> b) (g : b $-> c) (h : c $-> d)
   : h $o (g $o f) = (h $o g) $o f
   := (cat_assoc_strong f g h)^.
 
-Global Instance is1cat_is1cat_strong (A : Type) `{Is1Cat_Strong A}
+Global Instance is1cat_is1cat_strong (A : Strong1Cat)
   : Is1Cat A | 1000.
 Proof.
   srapply Build_Is1Cat.
@@ -232,36 +351,38 @@ Proof.
 Defined.
 
 (** Initial objects *)
-Definition IsInitial {A : Type} `{Is1Cat A} (x : A)
+Definition IsInitial {A : 1Cat} (x : A)
   := forall (y : A), {f : x $-> y & forall g, f $== g}.
 Existing Class IsInitial.
 
-Definition mor_initial {A : Type} `{Is1Cat A} (x y : A) {h : IsInitial x}
+Definition mor_initial {A : 1Cat} (x y : A) {h : IsInitial x}
   : x $-> y
   := (h y).1.
 
-Definition mor_initial_unique {A : Type} `{Is1Cat A} (x y : A) {h : IsInitial x}
+Definition mor_initial_unique {A : 1Cat} (x y : A) {h : IsInitial x}
   (f : x $-> y)
   : mor_initial x y $== f
   := (h y).2 f.
 
 (** Terminal objects *)
-Definition IsTerminal {A : Type} `{Is1Cat A} (y : A)
+Definition IsTerminal {A : 1Cat} (y : A)
   := forall (x : A), {f : x $-> y & forall g, f $== g}.
 Existing Class IsTerminal.
 
-Definition mor_terminal {A : Type} `{Is1Cat A} (x y : A) {h : IsTerminal y}
+Definition mor_terminal {A : 1Cat} (x y : A) {h : IsTerminal y}
   : x $-> y
   := (h x).1.
 
-Definition mor_terminal_unique {A : Type} `{Is1Cat A} (x y : A) {h : IsTerminal y}
+Definition mor_terminal_unique {A : 1Cat} (x y : A)
+  {h : IsTerminal y}
   (f : x $-> y)
   : mor_terminal x y $== f
   := (h x).2 f.
 
 (** Generalizing function extensionality, "Morphism extensionality" states that homwise [GpdHom_path] is an equivalence. *)
-Class HasMorExt (A : Type) `{Is1Cat A} := {
-  isequiv_Htpy_path : forall a b f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
+Class HasMorExt (A : 1Cat) := {
+    isequiv_Htpy_path :
+    forall (a b :A) f g, IsEquiv (@GpdHom_path (a $-> b) f g)
 }.
 
 Global Existing Instance isequiv_Htpy_path.
@@ -271,7 +392,7 @@ Definition path_hom {A} `{HasMorExt A} {a b : A} {f g : a $-> b} (p : f $== g)
   := GpdHom_path^-1 p.
 
 (** A 1-category with morphism extensionality induces a strong 1-category *)
-Global Instance is1cat_strong_hasmorext {A : Type} `{HasMorExt A}
+Global Instance is1cat_strong_hasmorext {A : 1Cat} {_ : HasMorExt A}
   : Is1Cat_Strong A.
 Proof.
   rapply Build_Is1Cat_Strong; hnf; intros; apply path_hom.
@@ -282,29 +403,55 @@ Defined.
 
 (** A 1-functor acts on 2-cells (satisfying no axioms) and also preserves composition and identities up to a 2-cell. *)
   (* The [!] tells Coq to use typeclass search to find the [IsGraph] parameters of [Is0Functor] instead of assuming additional copies of them. *)
-Class Is1Functor {A B : Type} `{Is1Cat A} `{Is1Cat B}
+Class Is1Functor {A B : 1Cat} 
   (F : A -> B) `{!Is0Functor F} :=
-{
-  fmap2 : forall a b (f g : a $-> b), (f $== g) -> (fmap F f $== fmap F g) ;
-  fmap_id : forall a, fmap F (Id a) $== Id (F a);
-  fmap_comp : forall a b c (f : a $-> b) (g : b $-> c),
-    fmap F (g $o f) $== fmap F g $o fmap F f;
-}.
+  {
+    fmap2 : forall a b (f g : a $-> b),
+      (f $== g) -> (fmap F f $== fmap F g) ;
+    fmap_id : forall a, fmap F (Id a) $== Id (F a);
+    fmap_comp : forall a b c (f : a $-> b) (g : b $-> c),
+      fmap F (g $o f) $== fmap F g $o fmap F f;
+  }.
+Check @fmap2.
 
-Arguments fmap2 {A B
-  isgraph_A is2graph_A is01cat_A is1cat_A
-  isgraph_B is2graph_B is01cat_B is1cat_B}
+Arguments fmap2 {A B}
   F {is0functor_F is1functor_F a b f g} p : rename.
-Arguments fmap_id {A B
-  isgraph_A is2graph_A is01cat_A is1cat_A
-  isgraph_B is2graph_B is01cat_B is1cat_B}
+Arguments fmap_id {A B}
   F {is0functor_F is1functor_F} a : rename.
-Arguments fmap_comp {A B
-  isgraph_A is2graph_A is01cat_A is1cat_A
-  isgraph_B is2graph_B is01cat_B is1cat_B}
+Arguments fmap_comp {A B}
   F {is0functor_F is1functor_F a b c} f g : rename.
 
-Class Faithful {A B : Type} (F : A -> B) `{Is1Functor A B F} :=
+Module OneFunctor.
+  Structure type (A B : 1Cat) :=
+    Pack {
+        underlying_map : A -> B;
+        is0Functor : Is0Functor underlying_map;
+        is1Functor : Is1Functor underlying_map
+      }.
+  Definition Is0Functor {A B} : type A B -> 0Functor A B
+    := fun F => ZeroFunctor.Pack A B
+                  (@underlying_map _ _ F)
+                  (@is0Functor _ _ F).
+  
+  Module Exports.
+    (* #[reversible] *)
+    Coercion underlying_map : type >-> Funclass.
+    (* #[reversible] *)
+    Coercion Is0Functor : type >-> ZeroFunctor.ZeroFunctor.
+    #[export] Existing Instance is0Functor.
+    #[export] Existing Instance is1Functor.
+    Notation "1Functor" := type.
+  End Exports.
+End OneFunctor.
+
+Export OneFunctor.Exports.
+
+Canonical Build_1Functor {A B : 1Cat} (F : A -> B)
+  {H : Is0Functor F}
+  {H' : Is1Functor F}
+  := OneFunctor.Pack A B F H H'.
+
+Class Faithful {A B : 1Cat} (F : 1Functor A B) :=
   faithful : forall (x y : A) (f g : x $-> y),
       fmap F f $== fmap F g -> f $== g.
 
@@ -312,19 +459,20 @@ Class Faithful {A B : Type} (F : A -> B) `{Is1Functor A B F} :=
 
 Section IdentityFunctor.
 
-  Context {A : Type} `{Is1Cat A}.
-
-  Global Instance is0functor_idmap : Is0Functor idmap.
+  Context {A : 1Cat}.
+  Global Instance is0functor_idmap : @Is0Functor A A _ _ idmap.
   Proof.
     by apply Build_Is0Functor.
   Defined.
 
-  Global Instance is1functor_idmap : Is1Functor idmap.
+  Global Instance is1functor_idmap
+    : @Is1Functor A A idmap _.
   Proof.
     by apply Build_Is1Functor.
   Defined.
-
-  #[export] Instance isFaithful_idmap : Faithful idmap.
+  
+  #[export] Instance isFaithful_idmap
+    : Faithful (Build_1Functor idmap).
   Proof.
     by unfold Faithful.
   Defined.
@@ -343,10 +491,11 @@ Section ConstantFunctor.
     srapply Build_Is0Functor.
     intros a b f; apply Id.
   Defined.
-
+  Check @Is1Functor .
+          
   Global Instance is1functor_const
    `{Is1Cat A} `{Is1Cat B} (x : B)
-    : Is1Functor (fun _ : A => x).
+    : @Is1Functor A _ (fun _ : A => x).
   Proof.
     srapply Build_Is1Functor.
     - intros a b f g p; apply Id.
