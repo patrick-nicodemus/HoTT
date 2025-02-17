@@ -4,6 +4,7 @@ Require Import Basics.Tactics.
 Require Import Types.Sigma.
 Require Import WildCat.Core.
 Require Import WildCat.Prod.
+Require Import WildCat.NatTrans.
 
 Class IsDGraph {A : Type} `{IsGraph A} (D : A -> Type)
   := DHom : forall {a b : A}, (a $-> b) -> D a -> D b -> Type.
@@ -362,6 +363,14 @@ Arguments dfmap_id {A B DA _ _ _ _ _ _ _ _ DB _ _ _ _ _ _ _ _}
 Arguments dfmap_comp {A B DA _ _ _ _ _ _ _ _ DB _ _ _ _ _ _ _ _}
   F {_ _} F' {_ _ a b c f g a' b' c'} f' g'.
 
+Record D1Functor
+  {A B : Type} {DA : A -> Type} `{IsD1Cat A DA} {DB : B -> Type} `{IsD1Cat B DB}
+  (F : A -> B) `{!Is0Functor F, !Is1Functor F} := {
+    dFunctor : forall (a : A), DA a -> DB (F a);
+    isD0Functor : IsD0Functor F dFunctor;
+    isD1Functor : IsD1Functor F dFunctor
+  }.
+
 Global Instance is1functor_total {A B : Type} (DA : A -> Type) (DB : B -> Type)
   (F : A -> B) (F' : forall (a : A), DA a -> DB (F a)) `{IsD1Functor A B DA DB F F'}
   : Is1Functor (functor_sigma F F').
@@ -526,3 +535,20 @@ Proof.
   - intros ab1 ab2 fg ab1' ab2' [f' g'].
     exact (dcat_idr f', dcat_idr g').
 Defined.
+
+Definition DTransformation {A B : Type}
+  (DA : A -> Type) (DB : B -> Type)
+  `{IsDGraph B DB} {F G : A -> B} (tau : Transformation F G)
+  (F' : forall {a : A}, (DA a) -> DB (F a))
+  (G' : forall {a : A}, (DA a) -> DB (G a))
+  := forall (a : A) (a' : DA a), DHom (tau a) (F' a') (G' a').
+
+Class IsD1Natural {A B: Type} (DA : A->Type) `{IsDGraph A DA}
+  (DB : B -> Type) `{IsD1Cat B DB}
+  (F G  : A -> B) `{!Is0Functor F, !Is0Functor G}
+  (tau: Transformation F G)
+  `{!Is1Natural F G tau}
+  (F' : forall (a : A), DA a -> DB (F a))
+  (G' : forall (a : A), DA a -> DB (G a))
+  (tau' : DTransformation DA DB tau F' G')
+  := a : Unit.
