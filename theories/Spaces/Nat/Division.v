@@ -589,7 +589,7 @@ Defined.
 
 (** Dividing a number by a quotient is the same as dividing the product of the number with the denominator of the quotient by the numerator of the quotient. *)
 Definition nat_div_div_r n m k : (k | m) -> n / (m / k) = (n * k) / m.
-Proof. 
+Proof.
   intros [d r].
   destruct (nat_zero_or_gt_zero k) as [[] | kp].
   1: by rewrite nat_mul_zero_r, nat_div_zero_l.
@@ -733,9 +733,18 @@ Definition nat_gcd_assoc n m k : nat_gcd n (nat_gcd m k) = nat_gcd (nat_gcd n m)
 Proof.
   nrapply nat_gcd_unique.
   - intros q H1 H2.
-    rapply nat_divides_r_gcd.
-  - rapply (nat_divides_trans (nat_divides_l_gcd_l _ _)).
-  - apply nat_divides_r_gcd; rapply nat_divides_trans.
+    apply nat_divides_r_gcd.
+    + apply nat_divides_r_gcd.
+      * assumption.
+      * exact (nat_divides_trans _ (nat_divides_l_gcd_l _ _)).
+    + exact (nat_divides_trans _ (snd (nat_divides_l_gcd m k))).
+  -
+    apply (nat_divides_trans (nat_divides_l_gcd_l _ _)).
+    apply nat_divides_l_gcd_l.
+  - apply nat_divides_r_gcd.
+    + apply (nat_divides_trans (nat_divides_l_gcd_l _ _)).
+      exact (snd (nat_divides_l_gcd _ _)).
+    + exact (snd (nat_divides_l_gcd _ _)).
 Defined.
 
 (** If [nat_gcd n m] is [0], then [n] must also be [0]. *)

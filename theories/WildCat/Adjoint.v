@@ -41,7 +41,7 @@ Record Adjunction {C D : Type} (F : C -> D) (G : D -> C)
         (yon (G y)) (fun x => equiv_adjunction _ y) ;
   (** Naturality in the right variable *)
   is1natural_equiv_adjunction_r (x : C)
-    : Is1Natural (opyon (F x)) (opyon x o G) (equiv_adjunction x) ; 
+    : Is1Natural (opyon (F x)) (opyon x o G) (equiv_adjunction x) ;
 }.
 
 Arguments equiv_adjunction {C D F G
@@ -175,7 +175,7 @@ Section AdjunctionData.
   Qed.
 
   Definition adjunction_triangle1
-    : Transformation 
+    : Transformation
         (nattrans_comp
           (nattrans_prewhisker adjunction_unit F)
           (nattrans_postwhisker F adjunction_counit))
@@ -211,7 +211,7 @@ End AdjunctionData.
 (** A natural equivalence between functors [D -> Type] which is also natural in the left. *)
 Definition Build_Adjunction_natequiv_nat_left
   {C D : Type} (F : C -> D) (G : D -> C)
-  `{Is1Cat C, Is1Cat D, !Is0Functor F, !Is0Functor G} 
+  `{Is1Cat C, Is1Cat D, !Is0Functor F, !Is0Functor G}
   (e : forall x, NatEquiv (opyon (F x)) (opyon x o G))
   (is1nat_e : forall y, Is1Natural (A := C^op) (yon y o F)
       (** We have to explicitly give a witness to the functoriality of [yon y o F]. *)
@@ -228,7 +228,7 @@ Defined.
 (** A natural equivalence between functors [C^op -> Type] which is also natural in the left. *)
 Definition Build_Adjunction_natequiv_nat_right
   {C D : Type} (F : C -> D) (G : D -> C)
-  `{Is1Cat C, Is1Cat D, !Is0Functor F, !Is0Functor G} 
+  `{Is1Cat C, Is1Cat D, !Is0Functor F, !Is0Functor G}
   (e : forall y, NatEquiv (A := C^op) (yon y o F) (yon (G y))
     (is0functor_F := is0functor_compose (A:=C^op) (B:=D^op) (C:=Type) _ _))
   (is1nat_e : forall x, Is1Natural (opyon (F x)) (opyon x o G) (fun y => e y x))
@@ -251,7 +251,7 @@ Section UnitCounitAdjunction.
   `{!HasMorExt C, !HasMorExt D}
   (ε : NatTrans (F o G) idmap)
   (η : NatTrans idmap (G o F))
-  (t1 : Transformation 
+  (t1 : Transformation
     (nattrans_comp (nattrans_prewhisker ε F) (nattrans_postwhisker F η))
     (nattrans_id _))
   (t2 : Transformation
@@ -377,14 +377,13 @@ Proof.
       (natequiv_adjunction_l adj2 y) F). }
   intros x.
   rapply is1natural_comp.
-  + rapply (is1natural_prewhisker G' (natequiv_adjunction_r adj1 x)).
-  + rapply is1natural_equiv_adjunction_r.
+  exact (is1natural_prewhisker G' (natequiv_adjunction_r adj1 x)).
 Defined.
 
 (** Replace the left functor in an adjunction by a naturally equivalent one. *)
 Lemma adjunction_natequiv_left {C D : Type} (F F' : C -> D) (G : D -> C)
   `{Is1Cat C, HasEquivs D, !HasMorExt D,
-    !Is0Functor F, !Is0Functor F', !Is0Functor G} 
+    !Is0Functor F, !Is0Functor F', !Is0Functor G}
   : NatEquiv F F' -> F ⊣ G -> F' ⊣ G.
 Proof.
   intros e adj.
@@ -399,7 +398,7 @@ Defined.
 (** Replace the right functor in an adjunction by a naturally equivalent one. *)
 Lemma adjunction_natequiv_right {C D : Type} (F : C -> D) (G G' : D -> C)
   `{HasEquivs C, Is1Cat D, !HasMorExt C,
-    !Is0Functor F, !Is0Functor G, !Is0Functor G'} 
+    !Is0Functor F, !Is0Functor G, !Is0Functor G'}
   : NatEquiv G G' -> F ⊣ G -> F ⊣ G'.
 Proof.
   intros e adj.
@@ -409,7 +408,6 @@ Proof.
     rapply (natequiv_postwhisker _ e). }
   intros y.
   rapply is1natural_comp.
-  2: exact _.
   rapply is1natural_yoneda.
 Defined.
 

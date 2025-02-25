@@ -112,7 +112,7 @@ Section Extensions.
     - intros _; exact tt.
     - intros ext; split.
       + intros g; exact (lift_extensionalong@{a1 a2 amin b1 b2 bmin p1 p2 pmin m1 m2} _ _ _ (fst ext g)).
-      + intros h k. 
+      + intros h k.
         (** Unles we give the universe explicitly here, [kmin] gets collapsed to [k1]. *)
         pose (P' := (fun b => h b = k b) : B -> Type@{pmin}).
         exact (IH P' (snd ext h k)).
@@ -719,9 +719,10 @@ Proof.
              ExtendableAlong 1 cyl (fun x:Cyl h => DPath C' (cglue x) (u x) (v x))).
   { intros u v.
     rapply extendable_postcompose'.
-    2:{ rapply (cancelL_extendable 1 _ cyl pr_cyl).
-        - rapply extendable_equiv.
-        - exact (eh (fun x => cglue x # u (cyr x)) (v o cyr)). }
+    3:{ rapply (cancelL_extendable 1 _ cyl pr_cyl).
+        3: exact (eh (fun x => cglue x # u (cyr x)) (v o cyr)).
+        rapply extendable_equiv.
+      }
     intros x; subst C'.
     refine ((dp_compose (pr_cylcoeq p q) C _)^-1 oE _).
     symmetry; srapply equiv_ds_fill_lr.

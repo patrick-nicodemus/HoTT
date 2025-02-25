@@ -42,8 +42,8 @@ Proof.
     intros n.
     exact (const (a n.+1)). }
   rapply contr_equiv'.
-  1: rapply equiv_functor_colimit.
-  1: rapply (equiv_sequence B A).
+  2: rapply equiv_functor_colimit.
+  2: rapply (equiv_sequence B A).
   1: reflexivity.
   { intros n e.
     exists equiv_idmap.
@@ -563,7 +563,7 @@ Defined.
 Definition equiv_seq_colim_sum_to_sum_seq_colim `{Univalence} {A} (B : FibSequence A)
   : Colimit (sig_seq B) <~> sig (fib_seq_to_type_fam B)
   := Build_Equiv _ _ _ (isequiv_seq_colim_sum_to_sum_seq_colim B).
-  
+
 (** The canonical map from the sequential colimit of Sigmas to the Sigma of sequential colimits commutes with the first projection; Theorem 5.1. *)
 Definition seq_colim_sum_to_sum_seq_colim_fst `{Univalence} {A} (B : FibSequence A)
   : pr1 o (seq_colim_sum_to_sum_seq_colim B) == seq_colim_sum_to_seq_colim_fst B.
@@ -581,7 +581,7 @@ Definition path_seq (A : Sequence) (a1 a2 : A 0)
   := Build_Sequence (fun k => a1^+k = a2^+k) (fun k p => ap (fun a => a^+) p).
 
 Definition equiv_path_colim_zero `{Univalence} {A : Sequence} (a1 a2 : A 0) :
-  (inj A 0 a1 = inj A 0 a2) <~> Colimit (path_seq A a1 a2). 
+  (inj A 0 a1 = inj A 0 a2) <~> Colimit (path_seq A a1 a2).
 Proof.
   pose (B := Build_FibSequence A (fun x => a1^+(x.1) = x.2) (fun x => ap (fun a => a^+))).
   transitivity (fib_seq_to_type_fam B (inj A 0 a2)).

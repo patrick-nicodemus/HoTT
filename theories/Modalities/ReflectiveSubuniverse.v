@@ -122,8 +122,8 @@ Section Subuniverse.
   Proof.
     split.
     - exact _. (* Uses the instance mapinO_pr1 above. *)
-    - rapply functor_forall; intros a x.
-      exact (inO_equiv_inO (hfiber pr1 a)
+    - rapply functor_forall; [|intros a x].
+      2: exact (inO_equiv_inO (hfiber pr1 a)
                            (hfiber_fibration a B)^-1%equiv).
   Defined.
 
@@ -1799,7 +1799,7 @@ Section ConnectedMaps.
     apply conn_map_from_extension_elim; intros P ? d.
     exists (conn_map_elim g P (conn_map_elim f (fun b => P (g b)) d)); intros a.
     exact (conn_map_comp g P _ _ @ conn_map_comp f (fun b => P (g b)) d a).
-  Defined.      
+  Defined.
 
   Definition cancelR_conn_map {A B C : Type} (f : A -> B) (g : B -> C)
          `{IsConnMap O _ _ f} `{IsConnMap O _ _ (g o f)}
