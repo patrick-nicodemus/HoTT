@@ -280,7 +280,7 @@ Section TwistConstruction.
         rapply braid_nat_r.
     - intros a.
       rapply compose_catie'.
-      rapply catie_braid.
+      exact (catie_braid _ _).
   Defined.
 
   (** *** Triangle *)

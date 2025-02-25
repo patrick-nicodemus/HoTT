@@ -48,7 +48,7 @@ Definition iscomplex_ptr (n : trunc_index) {F X Y : pType}
 Proof.
   refine ((fmap_comp (pTr n) i f)^* @* _).
   refine (_ @* ptr_functor_pconst n).
-  rapply (fmap2 (pTr _)); assumption.
+  refine (fmap2 (pTr _) _); assumption.
 Defined.
 
 (** Loop spaces preserve complexes. *)
@@ -57,7 +57,7 @@ Definition iscomplex_loops {F X Y : pType}
   : IsComplex (fmap loops i) (fmap loops f).
 Proof.
   refine ((fmap_comp loops i f)^$ $@ _ $@ fmap_zero_morphism _).
-  rapply (fmap2 loops); assumption.
+  refine (fmap2 loops _); assumption.
 Defined.
 
 Definition iscomplex_iterated_loops {F X Y : pType}
@@ -276,8 +276,8 @@ Proof.
   refine (conn_map_homotopic n (cxfib (cx_isexact)) _ _ _).
   intro u. srapply path_hfiber.
   { reflexivity. }
-  cbn. unfold moveR_equiv_V. rewrite !concat_1p, !concat_p1, ap_pp_p, ap_pp, (ap_pp k _ (eissect k (point Y'))), ap_V, <- !eisadj. 
-  rewrite <- !ap_compose, concat_pp_p. 
+  cbn. unfold moveR_equiv_V. rewrite !concat_1p, !concat_p1, ap_pp_p, ap_pp, (ap_pp k _ (eissect k (point Y'))), ap_V, <- !eisadj.
+  rewrite <- !ap_compose, concat_pp_p.
   rewrite (concat_A1p (eisretr k)), concat_pV_p.
   rewrite (concat_A1p (eisretr k)), concat_V_pp. reflexivity.
 Defined.
@@ -345,7 +345,7 @@ Global Instance isexact_purely_fiberseq {F X Y : pType} (fs : FiberSeq F X Y)
   : IsExact purely (i_fiberseq fs) fs.1.
 Proof.
   srapply Build_IsExact; [ srapply Build_pHomotopy | ].
-  - intros u; cbn. 
+  - intros u; cbn.
     exact ((fs.2 u).2).
   - apply moveL_pV. cbn.
     refine (concat_p1 _ @ _).
@@ -387,7 +387,7 @@ Proof.
     (isexact_purely_fiberseq (fiberseq_loops (fiberseq_isexact_purely i f)))).
   transitivity (fmap loops (pfib f) o* fmap loops (cxfib cx_isexact)).
   - refine (_ @* fmap_comp loops _ _).
-    rapply (fmap2 loops).
+    refine (fmap2 loops _).
     symmetry; apply pfib_cxfib.
   - refine (_ @* pmap_compose_assoc _ _ _).
     refine (pmap_prewhisker (fmap loops (cxfib cx_isexact)) _).
@@ -409,7 +409,7 @@ Global Instance isexact_ptr `{Univalence} (n : trunc_index)
   : IsExact (Tr n) (fmap (pTr n.+1) i) (fmap (pTr n.+1) f).
 Proof.
   exists (iscomplex_ptr n.+1 i f cx_isexact).
-  srefine (cancelR_conn_map (Tr n) (@tr n.+1 F) 
+  srefine (cancelR_conn_map (Tr n) (@tr n.+1 F)
     (@cxfib _ _ _ (fmap (pTr n.+1) i) (fmap (pTr n.+1) f) _)).
   { intros x; rapply isconnected_pred. }
   nrapply conn_map_homotopic.
@@ -471,7 +471,7 @@ Proof.
            (pequiv_pfiber _ _ (square_pequiv_pfiber _ _ (square_pfib_pequiv_cxfib i f))))^-1*)
           (((pfiber2_loops f) o*E (pequiv_pfiber _ _ (square_pfib_pequiv_cxfib i f)))^-1*)
           _ (pfib i)).
-  refine (vinverse 
+  refine (vinverse
             ((loops_inv X) o*E
              (pfiber2_loops (pfib f)) o*E
              (pequiv_pfiber _ _ (square_pequiv_pfiber _ _ (square_pfib_pequiv_cxfib i f))))

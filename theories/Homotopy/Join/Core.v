@@ -80,7 +80,7 @@ Section Join.
     nrapply transport_paths_FFlr'.
     apply Hglue.
   Defined.
-  
+
   Definition Join_ind_FFlFr {A B C P : Type}
     (f : Join A B -> C) (g : C -> P) (h : Join A B -> P)
     (Hl : forall a, g (f (joinl a)) = h (joinl a))
@@ -93,7 +93,7 @@ Section Join.
     nrapply transport_paths_FFlFr'.
     apply Hglue.
   Defined.
-  
+
   Definition Join_ind_FlFFr {A B C P : Type}
     (f : Join A B -> C) (g : C -> P) (h : Join A B -> P)
     (Hl : forall a, h (joinl a) = g (f (joinl a)))
@@ -106,7 +106,7 @@ Section Join.
     nrapply transport_paths_FlFFr'.
     apply Hglue.
   Defined.
-  
+
   Definition Join_ind_FFlFFr {A B C D P : Type}
     (f : Join A B -> C) (g : C -> P) (h : Join A B -> D) (i : D -> P)
     (Hl : forall a, i (h (joinl a)) = g (f (joinl a)))
@@ -354,7 +354,7 @@ Definition joinrecdata_0gpd_fun (A B : Type) : Fun11 Type ZeroGpd
 (** By the Yoneda lemma, it follows from [JoinRecData] being a 1-functor that given [JoinRecData] in [J], we get a map [(J -> P) $-> (JoinRecData A B P)] of 0-groupoids which is natural in [P]. Below we will specialize to the case where [J] is [Join A B] with the canonical [JoinRecData]. *)
 Definition join_nattrans_recdata {A B J : Type} (f : JoinRecData A B J)
   : NatTrans (opyon_0gpd J) (joinrecdata_0gpd_fun A B).
-Proof. 
+Proof.
   snrapply Build_NatTrans.
   1: rapply opyoneda_0gpd.
   2: exact _.
@@ -691,7 +691,7 @@ Section JoinSym.
   Definition equiv_join_sym' (A B : Type)
     : Join A B <~> Join B A.
   Proof.
-    rapply (opyon_equiv_0gpd (A:=Type)).
+    refine ((opyon_equiv_0gpd (A:=Type)) _).
     apply joinrecdata_fun_sym.
   Defined.
 
@@ -725,7 +725,7 @@ Section JoinSym.
   Proof.
     symmetry.
     (** Both sides are [join_rec] applied to [JoinRecData]: *)
-    rapply (fmap join_rec).
+    refine (fmap join_rec _).
     bundle_joinrecpath; intros; cbn.
     refine (ap inverse _).
     apply ap_idmap.

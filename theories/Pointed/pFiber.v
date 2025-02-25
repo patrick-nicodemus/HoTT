@@ -61,7 +61,7 @@ Proof.
   induction n.
   1: reflexivity.
   refine (_ o*E pfiber_fmap_loops _ ).
-  rapply (emap loops).
+  refine (emap loops _).
   exact IHn.
 Defined.
 
@@ -72,7 +72,7 @@ Definition functor_pfiber {A B C D}
 Proof.
   srapply Build_pMap.
   + cbn. refine (functor_hfiber2 p (point_eq k)).
-  + srapply path_hfiber. 
+  + srapply path_hfiber.
     - apply point_eq.
     - refine (concat_pp_p _ _ _ @ _). apply moveR_Vp. apply (point_htpy p)^.
 Defined.
@@ -113,7 +113,7 @@ Proof.
       refine (paths_ind_r _ _ _); intros p r; cbn.
     rewrite !concat_1p, concat_p1.
     rewrite paths_ind_r_transport.
-    rewrite transport_arrow_toconst, transport_paths_Fl. 
+    rewrite transport_arrow_toconst, transport_paths_Fl.
     rewrite concat_p1, inv_V, ap_V.
     refine (((r^)..2)^ @ _).
     rewrite transport_paths_Fl; cbn.

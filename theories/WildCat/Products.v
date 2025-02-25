@@ -709,7 +709,7 @@ Section Associativity.
     nrefine ((_ $@L cat_binprod_beta_pr2 _ _) $@ _).
     nrapply cat_pr2_fmap01_binprod.
   Defined.
-  
+
   Definition cat_binprod_twist_corec {w x y z : A}
     (f : w $-> x) (g : w $-> y) (h : w $-> z)
     : cat_binprod_twist x y z $o cat_binprod_corec f (cat_binprod_corec g h)
@@ -777,7 +777,7 @@ Section Associativity.
       refine (_ $@ (_ $@L _^$) $@ (cat_assoc _ _ _)^$).
       2: nrapply cat_binprod_beta_pr2.
       refine (_^$ $@ _ $@ _).
-      1,3: rapply fmap11_comp.
+      1,3: exact (fmap11_comp _ _ _ _ _).
       rapply fmap22.
       1: exact (cat_idl _ $@ (cat_idr _)^$).
       nrapply cat_binprod_beta_pr2.
@@ -826,14 +826,14 @@ Section Associativity.
     nrefine (cat_assoc _ _ _ $@ (_ $@L cat_pr2_fmap01_binprod _ _) $@ _).
     exact (cat_assoc_opp _ _ _ $@ (cat_binprod_beta_pr1 _ _ $@R _)).
   Defined.
-  
+
   Definition cat_binprod_associator_corec {w x y z}
     (f : w $-> x) (g : w $-> y) (h : w $-> z)
     : associator_cat_binprod x y z $o cat_binprod_corec f (cat_binprod_corec g h)
-      $== cat_binprod_corec (cat_binprod_corec f g) h. 
+      $== cat_binprod_corec (cat_binprod_corec f g) h.
   Proof.
     nrefine ((associator_twist'_unfold _ _ _ _ _ _ _ _ $@R _) $@ _).
-    nrefine ((cat_assoc_opp _ _ _ $@R _) $@ cat_assoc _ _ _ $@ (_ $@L (_ $@ _)) $@ _). 
+    nrefine ((cat_assoc_opp _ _ _ $@R _) $@ cat_assoc _ _ _ $@ (_ $@L (_ $@ _)) $@ _).
     1: nrapply cat_binprod_fmap01_corec.
     1: rapply (cat_binprod_corec_eta _ _ _ _ (Id _)).
     1: nrapply cat_binprod_swap_corec.

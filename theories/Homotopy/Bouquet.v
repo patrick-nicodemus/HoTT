@@ -16,7 +16,7 @@ Section AssumeUnivalence.
 
   Context `{Univalence}.
 
-  (** An S-indexed wedge of circles a.k.a a bouquet can be defined as the suspension of the pointification of S. *) 
+  (** An S-indexed wedge of circles a.k.a a bouquet can be defined as the suspension of the pointification of S. *)
   Definition Bouquet (S : Type) : pType := psusp (pointify S).
 
   Global Instance isconnected_bouquet (S : Type)
@@ -82,7 +82,7 @@ Section AssumeUnivalence.
     intros f.
     refine (_ @ @is1natural_equiv_pi1bouquet_rec S _ _ f grp_homo_id).
     simpl; f_ap; symmetry.
-    rapply (cat_idr_strong f).
+    exact (cat_idr_strong f).
   Defined.
 
 End AssumeUnivalence.

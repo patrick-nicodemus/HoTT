@@ -58,7 +58,7 @@ Proof.
 Defined.
 
 Definition ab_coeq_rec {A B : AbGroup} {f g : A $-> B}
-  {C : AbGroup} (i : B $-> C) (p : i $o f $== i $o g) 
+  {C : AbGroup} (i : B $-> C) (p : i $o f $== i $o g)
   : ab_coeq f g $-> C.
 Proof.
   snrapply (grp_quotient_rec _ _ i).
@@ -90,7 +90,7 @@ Defined.
 
 Definition ab_coeq_ind_homotopy {A B C f g}
   {l r : @ab_coeq A B f g $-> C}
-  (p : l $o ab_coeq_in $== r $o ab_coeq_in) 
+  (p : l $o ab_coeq_in $== r $o ab_coeq_in)
   : l $== r.
 Proof.
   srapply ab_coeq_ind_hprop.
@@ -122,7 +122,7 @@ Proof.
 Defined.
 
 Definition functor_ab_coeq_compose {A B} {f g : A $-> B}
-  {A' B'} {f' g' : A' $-> B'} 
+  {A' B'} {f' g' : A' $-> B'}
   (a : A $-> A') (b : B $-> B') (p : f' $o a $== b $o f) (q : g' $o a $== b $o g)
   {A'' B''} {f'' g'' : A'' $-> B''}
   (a' : A' $-> A'') (b' : B' $-> B'')
@@ -150,10 +150,10 @@ Proof.
   - exact (functor_ab_coeq a^-1$ b^-1$ (hinverse _ _ p) (hinverse _ _ q)).
   - nrefine (functor_ab_coeq_compose _ _ _ _ _ _ _ _
       $@ functor2_ab_coeq _ _ _ _ _ $@ functor_ab_coeq_id _ _).
-    rapply cate_isretr.
+    exact (cate_isretr _).
   - nrefine (functor_ab_coeq_compose _ _ _ _ _ _ _ _
       $@ functor2_ab_coeq _ _ _ _ _ $@ functor_ab_coeq_id _ _).
-    rapply cate_issect.
+    exact (cate_issect _).
 Defined.
 
 (** ** The bifunctor [ab_hom] *)

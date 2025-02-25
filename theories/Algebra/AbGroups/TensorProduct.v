@@ -30,7 +30,7 @@ Definition family_biadditive_pairs {A B : AbGroup}
   : FreeAbGroup (A * B) -> Type.
 Proof.
   intros x.
-  refine ((exists (a1 a2 : A) (b : B), _) + exists (a : A) (b1 b2 : B), _)%type. 
+  refine ((exists (a1 a2 : A) (b : B), _) + exists (a : A) (b1 b2 : B), _)%type.
   - refine (- _ + (_ + _) = x).
     1-3: apply freeabgroup_in.
     + exact (a1 + a2, b).
@@ -61,7 +61,7 @@ Definition tensor {A B : AbGroup} : A -> B -> ab_tensor_prod A B
 
 (** The characterizing property of simple tensors are that they are biadditive in their arguments. *)
 
-(** A [tensor] of a sum distributes over the sum on the left. *) 
+(** A [tensor] of a sum distributes over the sum on the left. *)
 Definition tensor_dist_l {A B : AbGroup} (a : A) (b b' : B)
   : tensor a (b + b') = tensor a b + tensor a b'.
 Proof.
@@ -89,7 +89,7 @@ Proof.
   - exact (fun b => tensor a b).
   - intros b b'.
     nrapply tensor_dist_l.
-Defined. 
+Defined.
 
 (** Tensoring on the right is a group homomorphism. *)
 Definition grp_homo_tensor_r {A B : AbGroup} (b : B)
@@ -123,7 +123,7 @@ Definition tensor_zero_r {A B : AbGroup} (a : A)
 
 (** The [tensor] map is biadditive and therefore can be written in a curried form using the internal abelian group hom. *)
 Definition grp_homo_tensor `{Funext} {A B : AbGroup}
-  : A $-> ab_hom B (ab_tensor_prod A B). 
+  : A $-> ab_hom B (ab_tensor_prod A B).
 Proof.
   snrapply Build_GroupHomomorphism.
   - intros a.
@@ -138,7 +138,7 @@ Defined.
 
 (** ** Induction principles *)
 
-(** Here we write down some induction principles to help us prove lemmas about the tensor product. Some of these are quite specialised but are patterns that appear often in practice. *) 
+(** Here we write down some induction principles to help us prove lemmas about the tensor product. Some of these are quite specialised but are patterns that appear often in practice. *)
 
 (** Our main recursion principle states that in order to build a homomorphism out of the tensor product, it is sufficient to provide a map out of the direct product which is biadditive, that is, a map that preserves addition in each argument of the product. *)
 
@@ -169,7 +169,7 @@ Opaque ab_tensor_prod_rec_helper.
 Definition ab_tensor_prod_rec {A B C : AbGroup}
   (f : A -> B -> C)
   (l : forall a b b', f a (b + b') = f a b + f a b')
-  (r : forall a a' b, f (a + a') b = f a b + f a' b) 
+  (r : forall a a' b, f (a + a') b = f a b + f a' b)
   : ab_tensor_prod A B $-> C.
 Proof.
   unfold ab_tensor_prod.
@@ -308,7 +308,7 @@ Defined.
 (** A function of two variables is biadditive if it preserves the operation in each variable. *)
 Class IsBiadditive {A B C : Type} `{SgOp A, SgOp B, SgOp C} (f : A -> B -> C) := {
   isbiadditive_l :: forall b, IsSemiGroupPreserving (flip f b);
-  isbiadditive_r :: forall a, IsSemiGroupPreserving (f a);  
+  isbiadditive_r :: forall a, IsSemiGroupPreserving (f a);
 }.
 
 Definition issig_IsBiadditive {A B C : Type} `{SgOp A, SgOp B, SgOp C}
@@ -384,7 +384,7 @@ Defined.
 
 (** The tensor product produces a bifunctor and we will later show that it gives a symmetric monoidal structure on the category of abelian groups. *)
 
-(** Given a pair of maps, we can produce a homomorphism between the pairwise tensor products of the domains and codomains. *) 
+(** Given a pair of maps, we can produce a homomorphism between the pairwise tensor products of the domains and codomains. *)
 Definition functor_ab_tensor_prod {A B A' B' : AbGroup}
   (f : A $-> A') (g : B $-> B')
   : ab_tensor_prod A B $-> ab_tensor_prod A' B'.
@@ -456,7 +456,7 @@ Defined.
 (** We can define a swap map which swaps the order of simple tensors. *)
 Definition ab_tensor_swap {A B} : ab_tensor_prod A B $-> ab_tensor_prod B A.
 Proof.
-  snrapply ab_tensor_prod_rec. 
+  snrapply ab_tensor_prod_rec.
   - exact (flip tensor).
   - intros a b b'.
     apply tensor_dist_r.
@@ -466,11 +466,11 @@ Defined.
 
 (** [ab_tensor_swap] is involutive. *)
 Definition ab_tensor_swap_swap {A B}
-  : ab_tensor_swap $o @ab_tensor_swap A B $== Id _. 
+  : ab_tensor_swap $o @ab_tensor_swap A B $== Id _.
 Proof.
   snrapply ab_tensor_prod_ind_homotopy.
   reflexivity.
-Defined. 
+Defined.
 
 (** [ab_tensor_swap] is natural in both arguments. This means that it also acts on tensor functors. *)
 Definition ab_tensor_swap_natural {A B A' B'} (f : A $-> A') (g : B $-> B')
@@ -491,7 +491,7 @@ Proof.
     + snrapply Build_Is1Natural.
       intros; nrapply ab_tensor_swap_natural.
   - intros; nrapply ab_tensor_swap_swap.
-Defined. 
+Defined.
 
 (** ** Twisting Triple Tensors *)
 
@@ -514,12 +514,12 @@ Local Definition ab_tensor_prod_twist_map_additive_l {A B C : AbGroup}
   (a a' : A) (b : ab_tensor_prod B C)
   : ab_tensor_prod_twist_map (a + a') b
     = ab_tensor_prod_twist_map a b + ab_tensor_prod_twist_map a' b.
-Proof.  
+Proof.
   revert b.
   nrapply ab_tensor_prod_ind_homotopy_plus.
   intros b c.
   change (tensor b (tensor (a + a') c)
-    = tensor b (tensor a c) + tensor b (tensor a' c)). 
+    = tensor b (tensor a c) + tensor b (tensor a' c)).
   rhs_V nrapply tensor_dist_l.
   nrapply (ap (tensor b)).
   nrapply tensor_dist_r.
@@ -530,7 +530,7 @@ Definition ab_tensor_prod_twist {A B C}
   : ab_tensor_prod A (ab_tensor_prod B C) $-> ab_tensor_prod B (ab_tensor_prod A C).
 Proof.
   snrapply ab_tensor_prod_rec'.
-  - exact ab_tensor_prod_twist_map. 
+  - exact ab_tensor_prod_twist_map.
   - exact ab_tensor_prod_twist_map_additive_l.
 Defined.
 
@@ -579,7 +579,7 @@ Proof.
   nrapply tensor_ab_mul_l.
 Defined.
 
-(** [abgroup_Z] is a right identity for the tensor product. *) 
+(** [abgroup_Z] is a right identity for the tensor product. *)
 Definition ab_tensor_prod_Z_r {A}
   : ab_tensor_prod A abgroup_Z $<~> A.
 Proof.
@@ -667,7 +667,7 @@ Proof.
   intros A B C D.
   snrapply ab_tensor_prod_ind_homotopy_quad.
   intros a b c d.
-  change (tensor c (tensor d (tensor a b)) = tensor c (tensor d (tensor a b))). 
+  change (tensor c (tensor d (tensor a b)) = tensor c (tensor d (tensor a b))).
   reflexivity.
 Defined.
 
@@ -695,7 +695,7 @@ Proof.
     + rapply (fmap01 ab_tensor_prod A).
       nrapply ab_coeq_in.
     + refine (_^$ $@ fmap02 ab_tensor_prod _ _ $@ _).
-      1,3: rapply fmap01_comp.
+      1,3: exact (fmap01_comp _ _ _ _).
       nrapply ab_coeq_glue.
   - snrapply ab_tensor_prod_rec'.
     + intros a.
@@ -823,7 +823,7 @@ Proof.
     + exact (fmap01 ab_tensor_prod A ab_biprod_inl).
     + exact (fmap01 ab_tensor_prod A ab_biprod_inr).
   - snrapply ab_biprod_ind_homotopy.
-    + refine (cat_assoc _ _ _ $@ (_ $@L _) $@ _). 
+    + refine (cat_assoc _ _ _ $@ (_ $@L _) $@ _).
       1: snrapply ab_biprod_rec_beta_inl.
       snrapply ab_tensor_prod_ind_homotopy.
       intros a b.

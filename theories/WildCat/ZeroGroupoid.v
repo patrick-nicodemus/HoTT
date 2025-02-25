@@ -119,7 +119,7 @@ Proof.
   econstructor.
   - intro y.
     exists (equiv_fun_0gpd f^-1$ y).
-    rapply cat_eisretr.
+    exact (cat_eisretr f y).
   - apply isinj_equiv_0gpd.
 Defined.
 

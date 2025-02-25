@@ -454,7 +454,7 @@ Proof.
   exact (h123 h a b c).
 Defined.
 
-(** ** Lemmas and tactics about triangles and prisms 
+(** ** Lemmas and tactics about triangles and prisms
 
   We now introduce several lemmas and tactics that will dispense with some routine goals. The idea is that a generic triangle can be assumed to be trivial on the first vertex, and a generic prism can be assumed to be the identity on the domain. In order to apply the [triangle_ind] and [prism_ind] lemmas that make this precise, we need to generalize various terms in the goal. *)
 
@@ -646,7 +646,7 @@ Proof.
   snrapply Build_NatTrans.
   - rapply opyoneda_0gpd; exact f.
   - exact _.
-Defined.  
+Defined.
 
 (** Thus we get a map [(TriJoin A B C -> P) $-> (TriJoinRecData A B C P)] of 0-groupoids, natural in [P]. The underlying map is [trijoin_rec_inv A B C P]. *)
 Definition trijoin_rec_inv_nattrans (A B C : Type)
@@ -793,7 +793,7 @@ Definition functor2_trijoin {A B C A' B' C'}
   : functor_trijoin f g h == functor_trijoin f' g' h'.
 Proof.
   unfold functor_trijoin.
-  rapply (fmap trijoin_rec).
+  refine (fmap trijoin_rec _).
   apply (trijoinrecdata_tricomp2 _ p q r).
 Defined.
 
