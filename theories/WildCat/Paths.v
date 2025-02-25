@@ -72,7 +72,7 @@ Proof.
   snrapply Build_IsTruncatedBicat.
   - exact _.
   - intros a b c. simpl. change concatR with (cat_comp (a:=a) (b:=b) (c:=c)).
-    rapply is0bifunctor_cat_comp_paths.
+    rapply (is0bifunctor_cat_comp_paths _ (H := isgraph_paths A)).
   - intros a b c d; apply concat_p_pp.
   - intros a b c d; apply concat_pp_p.
   - intros a b f; apply concat_p1.

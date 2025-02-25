@@ -101,6 +101,12 @@ Proof.
 Defined.
 (** *** Whiskering functoriality *)
 
+(* Hint Mode IsGraph ! : typeclass_instances. *)
+(* Hint Mode Is0Functor ! ! ! ! ! : typeclass_instances. *)
+(* Hint Mode Is2Graph ! - : typeclass_instances. *)
+(* Print Implicit fmap_comp. *)
+(* Ltac ntrefine x := notypeclasses refine x. *)
+
 Definition cat_postwhisker_pp {A} `{IsBicategory A} {a b c : A}
   {f g h : a $-> b} (k : b $-> c) (p : f $=> g) (q : g $=> h)
   : k $@L (q * p) $== (k $@L q) * (k $@L p) := fmap_comp _ _ _.

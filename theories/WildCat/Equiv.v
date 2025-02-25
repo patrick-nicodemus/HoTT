@@ -317,7 +317,7 @@ Proof.
   apply (cate_epic_equiv e^-1$).
   exact (p $@ (compose_hh_V _ _)^$).
 Defined.
-  
+
 Definition cate_moveR_eM {A} `{HasEquivs A} {a b c : A}
   (e : b $<~> a) (f : a $-> c) (g : b $-> c)
   (p : f $== g $o e^-1$)
@@ -620,7 +620,7 @@ Proof.
 Defined.
 
 Global Instance hasmorext_core {A : Type} `{HasEquivs A, !HasMorExt A}
-  `{forall x y (f g : uncore x $<~> uncore y), IsEquiv (ap (x := f) (y := g) cate_fun)} 
+  `{forall x y (f g : uncore x $<~> uncore y), IsEquiv (ap (x := f) (y := g) cate_fun)}
   : HasMorExt (core A).
 Proof.
   snrapply Build_HasMorExt.

@@ -26,8 +26,9 @@ Definition Coeq_ind {B A f g} (P : @Coeq B A f g -> Type)
   : forall w, P w.
 Proof.
   rapply GraphQuotient_ind.
-  intros a b [x [[] []]].
-  exact (cglue' x).
+  - exact coeq'.
+  - intros a b [x [[] []]].
+    exact (cglue' x).
 Defined.
 
 Lemma Coeq_ind_beta_cglue {B A f g} (P : @Coeq B A f g -> Type)
@@ -43,8 +44,9 @@ Definition Coeq_rec {B A f g} (P : Type) (coeq' : A -> P)
   : @Coeq B A f g -> P.
 Proof.
   rapply GraphQuotient_rec.
-  intros a b [x [[] []]].
-  exact (cglue' x).
+  - exact coeq'.
+  - intros a b [x [[] []]].
+    exact (cglue' x).
 Defined.
 
 Definition Coeq_rec_beta_cglue {B A f g} (P : Type) (coeq' : A -> P)
