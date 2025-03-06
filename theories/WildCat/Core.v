@@ -28,6 +28,7 @@ Class Is01Cat (A : Type) `{IsGraph A} :=
 
 Arguments cat_comp {A _ _ a b c} _ _.
 Notation "g $o f" := (cat_comp g f).
+Hint Mode Is01Cat ! - : typeclass_instances.
 
 Definition cat_postcomp {A} `{Is01Cat A} (a : A) {b c : A} (g : b $-> c)
   : (a $-> b) -> (a $-> c)
@@ -41,11 +42,12 @@ Definition cat_precomp {A} `{Is01Cat A} {a b : A} (c : A) (f : a $-> b)
 Class Is0Gpd (A : Type) `{Is01Cat A} :=
   { gpd_rev : forall {a b : A}, (a $-> b) -> (b $-> a) }.
 
+Hint Mode Is0Gpd ! - - : typeclass_instances.
 Definition GpdHom {A} `{Is0Gpd A} (a b : A) := a $-> b.
 Notation "a $== b" := (GpdHom a b).
 
 Global Instance reflexive_GpdHom {A} `{Is0Gpd A}
-  : Reflexive GpdHom
+  : Reflexive (A:=A) GpdHom
   := fun a => Id a.
 
 Global Instance reflexive_Hom {A} `{Is01Cat A}
@@ -87,12 +89,15 @@ Definition GpdHom_path {A} `{Is0Gpd A} {a b : A} (p : a = b) : a $== b
 Class Is0Functor {A B : Type} `{IsGraph A} `{IsGraph B} (F : A -> B)
   := { fmap : forall (a b : A) (f : a $-> b), F a $-> F b }.
 
+Hint Mode Is0Functor + - - - - : typeclass_instances.
+
 Arguments fmap {A B isgraph_A isgraph_B} F {is0functor_F a b} f : rename.
 
 Class Is2Graph (A : Type) `{IsGraph A}
   := isgraph_hom : forall (a b : A), IsGraph (a $-> b).
 Global Existing Instance isgraph_hom | 20.
 #[global] Typeclasses Transparent Is2Graph.
+Hint Mode Is2Graph ! - : typeclass_instances.
 
 (** ** Wild 1-categorical structures *)
 Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
@@ -109,6 +114,7 @@ Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
   cat_idr : forall (a b : A) (f : a $-> b), f $o Id a $== f;
 }.
 
+Hint Mode Is1Cat ! - - - : typeclass_instances.
 Global Existing Instance is01cat_hom.
 Global Existing Instance is0gpd_hom.
 Global Existing Instance is0functor_postcomp.
@@ -247,8 +253,9 @@ Definition mor_terminal_unique {A : Type} `{Is1Cat A} (x y : A) {h : IsTerminal 
 
 (** Generalizing function extensionality, "Morphism extensionality" states that homwise [GpdHom_path] is an equivalence. *)
 Class HasMorExt (A : Type) `{Is1Cat A} := {
-  isequiv_Htpy_path : forall a b f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
+  isequiv_Htpy_path : forall (a b : A) f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
 }.
+Hint Mode HasMorExt ! - - - - : typeclass_instances.
 
 Global Existing Instance isequiv_Htpy_path.
 
@@ -278,6 +285,8 @@ Class Is1Functor {A B : Type} `{Is1Cat A} `{Is1Cat B}
     fmap F (g $o f) $== fmap F g $o fmap F f;
 }.
 
+Hint Mode Is1Functor + - - - - - - - - - - - : typeclass_instances.
+
 Arguments fmap2 {A B
   isgraph_A is2graph_A is01cat_A is1cat_A
   isgraph_B is2graph_B is01cat_B is1cat_B}
@@ -304,12 +313,12 @@ Section IdentityFunctor.
     by apply Build_Is0Functor.
   Defined.
 
-  Global Instance is1functor_idmap {A : Type} `{Is1Cat A} : Is1Functor idmap.
+  Global Instance is1functor_idmap {A : Type} `{Is1Cat A} : Is1Functor (A:=A) idmap.
   Proof.
     by apply Build_Is1Functor.
   Defined.
 
-  #[export] Instance isFaithful_idmap {A : Type} `{Is1Cat A}: Faithful idmap.
+  #[export] Instance isFaithful_idmap {A : Type} `{Is1Cat A}: Faithful (A:=A) idmap.
   Proof.
     by unfold Faithful.
   Defined.
@@ -387,6 +396,8 @@ Class Is1Gpd (A : Type) `{Is1Cat A, !Is0Gpd A} :=
   gpd_issect : forall {a b : A} (f : a $-> b), f^$ $o f $== Id a ;
   gpd_isretr : forall {a b : A} (f : a $-> b), f $o f^$ $== Id b ;
 }.
+
+Hint Mode Is1Gpd ! - - - - - : typeclass_instances.
 
 (** Some more convenient equalities for morphisms in a 1-groupoid. The naming scheme is similar to [PathGroupoids.v].*)
 

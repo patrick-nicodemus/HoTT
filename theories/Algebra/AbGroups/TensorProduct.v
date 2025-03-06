@@ -754,7 +754,7 @@ Defined.
 Definition equiv_ab_tensor_prod_freeabgroup X Y
   : FreeAbGroup (X * Y) $<~> ab_tensor_prod (FreeAbGroup X) (FreeAbGroup Y).
 Proof.
-  srefine (let f:=_ in let g:=_ in cate_adjointify f g _ _).
+  srefine (let f:=_ in let g:=_ in cate_adjointify (A:=AbGroup) f g _ _).
   - snrapply FreeAbGroup_rec.
     intros [x y].
     exact (tensor (freeabgroup_in x) (freeabgroup_in y)).
@@ -811,7 +811,7 @@ Definition ab_tensor_prod_dist_l {A B C : AbGroup}
   : ab_tensor_prod A (ab_biprod B C)
     $<~> ab_biprod (ab_tensor_prod A B) (ab_tensor_prod A C).
 Proof.
-  srapply (let f := _ in let g := _ in cate_adjointify f g _ _).
+  srapply (let f := _ in let g := _ in cate_adjointify (A:=AbGroup) f g _ _).
   - snrapply ab_tensor_prod_rec.
     + intros a bc.
       exact (tensor a (fst bc), tensor a (snd bc)).
@@ -823,14 +823,14 @@ Proof.
     + exact (fmap01 ab_tensor_prod A ab_biprod_inl).
     + exact (fmap01 ab_tensor_prod A ab_biprod_inr).
   - snrapply ab_biprod_ind_homotopy.
-    + refine (cat_assoc _ _ _ $@ (_ $@L _) $@ _). 
+    + refine (cat_assoc _ _ f $@ (_ $@L _) $@ _).
       1: snrapply ab_biprod_rec_beta_inl.
       snrapply ab_tensor_prod_ind_homotopy.
       intros a b.
       snrapply path_prod; simpl.
       * reflexivity.
       * snrapply tensor_zero_r.
-    + refine (cat_assoc _ _ _ $@ (_ $@L _) $@ _).
+    + refine (cat_assoc _ _ f $@ (_ $@L _) $@ _).
       1: snrapply ab_biprod_rec_beta_inr.
       snrapply ab_tensor_prod_ind_homotopy.
       intros a b.

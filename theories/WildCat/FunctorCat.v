@@ -178,7 +178,8 @@ Global Instance is0functor_fun01_postcomp {A B C}
 Proof.
   apply Build_Is0Functor.
   intros a b f.
-  rapply nattrans_postwhisker.
+  nrapply nattrans_postwhisker.
+  1: typeclasses eauto.
   exact f.
 Defined.
 

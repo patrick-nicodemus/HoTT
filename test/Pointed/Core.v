@@ -14,6 +14,6 @@ Defined.
 (** Check that it works for pointed equivalences. *)
 Definition test2 {X Y : pType} (f : X <~>* Y) : (f pt = pt) * (point_eq f = point_eq f).
 Proof.
-  pelim f.
+  unfold Equiv.CatEquiv in f; simpl in f; pelim f.
   split; reflexivity.
 Defined.

@@ -156,7 +156,7 @@ Definition cat_inr {A : Type} `{Is1Cat A} {x y : A} `{!BinaryCoproduct x y}
 
 (** A category with binary coproducts is a category with a binary coproduct for each pair of objects. *)
 Class HasBinaryCoproducts (A : Type) `{Is1Cat A}
-  := binary_coproducts :: forall x y, BinaryCoproduct x y.
+  := binary_coproducts :: forall x y : A, BinaryCoproduct x y.
 
 Global Instance hasbinarycoproducts_hascoproductsbool {A : Type}
   `{HasCoproducts Bool A}
@@ -214,7 +214,6 @@ End Lemmata.
 (** *** Binary coproduct functor *)
 
 (** Hint: Use [Set Printing Implicit] to see the implicit arguments in the following proofs. *)
-
 Global Instance is0functor_cat_bincoprod_l {A : Type}
   `{hbc : HasBinaryCoproducts A} y
   : Is0Functor (A:=A) (fun x => cat_bincoprod x y).

@@ -25,7 +25,7 @@ From HoTT Require Import WildCat.Core
 (* forall (x y : A), x $== y -> forall (a b : A), a $== b -> y $== b -> x $==a *)
 #[export] Instance IsProper_GpdHom_from {A : Type} `{Is0Gpd A}
   : CMorphisms.Proper
-      (GpdHom ==>
+      (GpdHom (A:=A) ==>
          GpdHom ==>
          CRelationClasses.flip CRelationClasses.arrow) GpdHom.
 Proof.
@@ -37,7 +37,7 @@ Defined.
 (* forall (x y : A), x $== y -> forall (a b : A), a $== b -> x $== a -> y $== b *)
 #[export] Instance IsProper_GpdHom_to {A : Type} `{Is0Gpd A}
   : CMorphisms.Proper
-      (GpdHom ==>
+      (GpdHom (A:=A) ==>
          GpdHom ==>
          CRelationClasses.arrow) GpdHom.
 Proof.
