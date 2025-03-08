@@ -40,7 +40,7 @@ Defined.
 (** ** Coequalizers *)
 
 (** Using the cokernel and addition and negation for the homs of abelian groups, we can define the coequalizer of two group homomorphisms as the cokernel of their difference. *)
-Definition ab_coeq {A B : AbGroup} (f g : GroupHomomorphism A B)
+Definition ab_coeq {A B : AbGroup} (f g : A $-> B)
   := ab_cokernel ((-f) + g).
 
 Definition ab_coeq_in {A B : AbGroup} {f g : A $-> B} : B $-> ab_coeq f g.
@@ -207,10 +207,8 @@ Proof.
 Defined.
 
 Instance is0bifunctor_ab_hom `{Funext}
-  : Is0Bifunctor (ab_hom : Group^op -> AbGroup -> AbGroup).
-Proof.
-  rapply Build_Is0Bifunctor''.
-Defined.
+  : Is0Bifunctor (ab_hom : Group^op -> AbGroup -> AbGroup)
+  := Build_Is0Bifunctor'' _.
 
 Instance is1bifunctor_ab_hom `{Funext}
   : Is1Bifunctor (ab_hom : Group^op -> AbGroup -> AbGroup).
