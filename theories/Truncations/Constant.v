@@ -11,7 +11,7 @@ Local Open Scope trunc_scope.
 
 Definition FixedBy {X : Type} (f : X -> X) := {x : X & f x = x}.
 
-Global Instance ishprop_fix_wconst {X : Type} (f : X -> X)
+Instance ishprop_fix_wconst {X : Type} (f : X -> X)
   {wc : WeaklyConstant f}
   : IsHProp (FixedBy f).
 Proof.
@@ -39,7 +39,7 @@ Definition splitsupp_collapsible {X} `{Collapsible X}
   : merely X -> X.
 Proof.
   refine (_ o (equiv_fix_merely collapse)^-1).
-  apply pr1.
+  exact pr1.
 Defined.
 
 Definition collapsible_splitsupp {X} (s : merely X -> X)
@@ -66,7 +66,7 @@ Definition equiv_cconst_from_merely `{Funext} (X Y : Type)
   : { f : X -> Y & ConditionallyConstant f } <~> (merely X -> Y).
 Proof.
   refine (_ oE (equiv_sigma_symm _)).
-  refine (equiv_sigma_contr _).
+  exact (equiv_sigma_contr _).
 Defined.
 
 (** If a function factors through any hprop, it is conditionally constant. *)
@@ -88,7 +88,7 @@ Definition cconst_factors_contr `{Funext}  {X Y : Type} (f : X -> Y)
 Proof.
   assert (merely X -> IsHProp P).
   { apply Trunc_rec.            (** Uses funext *)
-    intros x; pose (Pc x); apply istrunc_succ. }
+    intros x; pose (Pc x); exact istrunc_succ. }
   pose (g' := Trunc_ind (fun _ => P) g : merely X -> P).
   exists (h o g'); intros x.
   apply p.
@@ -167,7 +167,7 @@ Definition equiv_merely_rec_hset_if_domain `{Funext} (X Y : Type)
   : { f : X -> Y & WeaklyConstant f } <~> (merely X -> Y).
 Proof.
   pose proof (Ys' := Trunc_rec Ys : merely X -> IsHSet Y).
-  snrapply equiv_adjointify.
+  snapply equiv_adjointify.
   - intros [f wc].  exact (merely_rec_hset_if_domain f (wc:=wc)).
   - intro g.  exists (g o tr).
     intros x y; apply (ap g), path_ishprop.
@@ -175,7 +175,7 @@ Proof.
     pose proof (Ys' mx).
     strip_truncations; reflexivity.
   - intros [f wc].
-    snrapply path_sigma; cbn.
+    snapply path_sigma; cbn.
     + reflexivity.
     + cbn. funext x y.
       pose (Ys x); apply path_ishprop.
