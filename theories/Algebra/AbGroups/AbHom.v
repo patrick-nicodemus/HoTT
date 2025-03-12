@@ -2,6 +2,10 @@ Require Import Basics Types.
 Require Import WildCat HSet Truncations.Core Modalities.ReflectiveSubuniverse.
 Require Import Groups.Group Groups.QuotientGroup AbelianGroup Biproduct.
 
+(* If Hint A about groups appears before Hint B about Abelian groups appears in the typeclass database,
+   Coq may coerce an Abelian group to a group to apply A, so we position some hints carefully. *)
+Existing Instance is01cat_hom | 0.
+
 (** * Homomorphisms from a group to an abelian group form an abelian group. *)
 
 (** In this file, we use additive notation for the group operation, even though some of the groups we deal with are not assumed to be abelian. *)
@@ -101,9 +105,10 @@ Definition functor_ab_coeq {A B : AbGroup} {f g : A $-> B} {A' B' : AbGroup} {f'
   (a : A $-> A') (b : B $-> B') (p : f' $o a $== b $o f) (q : g' $o a $== b $o g)
   : ab_coeq f g $-> ab_coeq f' g'.
 Proof.
+  Set Printing All.
   snapply ab_coeq_rec.
   1: exact (ab_coeq_in $o b).
-  refine (cat_assoc f _ _ $@ _ $@ cat_assoc_opp _ _ _).
+  refine (cat_assoc _ _ _ $@ _ $@ cat_assoc_opp _ _ _).
   refine ((_ $@L p^$) $@ _ $@ (_ $@L q)).
   refine (cat_assoc_opp _ _ _ $@ (_ $@R a) $@ cat_assoc _ _ _).
   exact ab_coeq_glue.
