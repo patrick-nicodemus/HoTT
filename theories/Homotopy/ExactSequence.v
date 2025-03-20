@@ -497,12 +497,11 @@ Defined.
 
 Record LongExactSequence (k : Modality) (N : SuccStr) : Type :=
 {
-  les_carrier : N -> pType;
+  les_carrier :> N -> pType;
   les_fn : forall n, les_carrier n.+1 ->* les_carrier n;
   les_isexact :: forall n, IsExact k (les_fn n.+1) (les_fn n)
 }.
 
-Coercion les_carrier : LongExactSequence >-> Funclass.
 Arguments les_fn {k N} S n : rename.
 
 (** Long exact sequences are preserved by truncation. *)

@@ -387,15 +387,13 @@ Notation IsEmbedding := (IsTruncMap (-1)).
 (** It is convenient for some purposes to consider the universe of all n-truncated types (within a given universe of types).  In particular, this allows us to state the important fact that each such universe is itself (n+1)-truncated. *)
 
 Record TruncType (n : trunc_index) := {
-  trunctype_type : Type ;
+  trunctype_type :> Type ;
   trunctype_istrunc :: IsTrunc n trunctype_type
 }.
 
 Arguments Build_TruncType _ _ {_}.
 Arguments trunctype_type {_} _.
 Arguments trunctype_istrunc [_] _.
-
-Coercion trunctype_type : TruncType >-> Sortclass.
 
 Notation "n -Type" := (TruncType n) : type_scope.
 Notation HProp := (-1)-Type.

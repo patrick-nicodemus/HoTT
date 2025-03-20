@@ -21,7 +21,7 @@ Class IsHSpace (X : pType) := {
   hspace_right_identity :: RightIdentity hspace_op pt;
 }.
 
-#[export] Instance hspace_mon_unit {X : pType} `{IsHSpace X} : MonUnit X := pt.
+Instance hspace_mon_unit {X : pType} `{IsHSpace X} : MonUnit X := pt.
 
 Definition issig_ishspace {X : pType}
   : { mu : X -> X -> X & prod (forall x, mu pt x = x) (forall x, mu x pt = x) }

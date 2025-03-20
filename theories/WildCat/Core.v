@@ -239,9 +239,9 @@ Definition mor_terminal_unique {A : Type} `{Is1Cat A} (x y : A) {h : IsTerminal 
   := (h x).2 f.
 
 (** Generalizing function extensionality, "Morphism extensionality" states that homwise [GpdHom_path] is an equivalence. *)
-Class HasMorExt (A : Type) `{Is1Cat A} := {
+Class HasMorExt (A : Type) `{Is1Cat A} := 
   isequiv_Htpy_path :: forall a b f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
-}.
+.
 
 Definition path_hom {A} `{HasMorExt A} {a b : A} {f g : a $-> b} (p : f $== g)
   : f = g
@@ -581,7 +581,7 @@ Defined.
 
 Record BasepointPreservingFunctor (B C : Type)
        `{Is01Cat B, Is01Cat C} `{IsPointed B, IsPointed C} := {
-    bp_map : B -> C;
+    bp_map :> B -> C;
     bp_is0functor :: Is0Functor bp_map;
     bp_pointed : bp_map (point B) $-> point C
   }.
@@ -589,8 +589,6 @@ Record BasepointPreservingFunctor (B C : Type)
 Arguments bp_pointed {B C}%_type_scope {H H0 H1 H2 H3 H4} b.
 Arguments Build_BasepointPreservingFunctor {B C}%_type_scope {H H0 H1 H2 H3 H4}
   bp_map%_function_scope {bp_is0functor} bp_pointed.
-
-Coercion bp_map : BasepointPreservingFunctor >-> Funclass.
 
 Notation "B -->* C" := (BasepointPreservingFunctor B C) (at level 70).
 

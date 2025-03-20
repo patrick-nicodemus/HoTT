@@ -35,7 +35,6 @@ Class Isomorphic {C : PreCategory} s d :=
     isisomorphism_isomorphic :: IsIsomorphism morphism_isomorphic
   }.
 
-(*Coercion Build_Isomorphic : IsIsomorphism >-> Isomorphic.*)
 Coercion morphism_isomorphic : Isomorphic >-> morphism.
 Coercion isisomorphism_isomorphic : Isomorphic >-> IsIsomorphism.
 

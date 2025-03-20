@@ -183,12 +183,10 @@ Defined.
 (** A reflective subuniverse is one for which every type reflects into it. *)
 Record ReflectiveSubuniverse@{i} :=
 {
-  rsu_subuniv : Subuniverse@{i} ;
+  rsu_subuniv :> Subuniverse@{i} ;
   rsu_prereflects :: forall (T : Type@{i}), PreReflects rsu_subuniv T ;
   rsu_reflects :: forall (T : Type@{i}), Reflects rsu_subuniv T ;
 }.
-
-Coercion rsu_subuniv : ReflectiveSubuniverse >-> Subuniverse.
 
 (** We allow the name of a subuniverse or modality to be used as the name of its reflector.  This means that when defining a particular example, you should generally put the parametrizing family in a wrapper, so that you can notate the subuniverse as parameterized by, rather than identical to, its parameter.  See Modality.v, Truncations.v, and Localization.v for examples. *)
 Definition rsu_reflector (O : ReflectiveSubuniverse) (T : Type) : Type
