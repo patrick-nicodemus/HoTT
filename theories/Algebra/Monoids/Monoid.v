@@ -261,7 +261,7 @@ Proof.
   - exact mnd_prod_pr1.
   - exact mnd_prod_pr2.
   - intros P; exact mnd_prod_corec.
-  - intros P f g; exact (Id _).
-  - intros P f g; exact (Id _).
+  - intros P f g. cbn; reflexivity.
+  - intros P f g; cbn; reflexivity.
   - intros P f g p q a; exact (path_prod' (p a) (q a)).
 Defined.

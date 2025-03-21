@@ -409,7 +409,5 @@ Proof.
     exact (natequiv_postwhisker _ e). }
   intros y.
   rapply is1natural_comp.
-  2: exact _.
   rapply is1natural_yoneda.
 Defined.
-

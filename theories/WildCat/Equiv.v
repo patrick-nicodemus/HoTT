@@ -27,6 +27,8 @@ Class HasEquivs (A : Type) `{Is1Cat A} :=
     (r : f $o g $== Id b) (s : g $o f $== Id a), CatIsEquiv' a b f;
 }.
 
+Hint Mode HasEquivs ! - - - - : typeclass_instances.
+
 (** Since apparently a field of a record can't be the source of a coercion (Coq complains about the uniform inheritance condition, although as officially stated that condition appears to be satisfied), we redefine all the fields of [HasEquivs]. *)
 
 Definition CatEquiv {A} `{HasEquivs A} (a b : A)
@@ -106,7 +108,7 @@ Instance isequiv_op {A : Type} `{HasEquivs A}
   : @CatIsEquiv A^op _ _ _ _ _ b a f
   := ief.
 
-Definition cate_issect {A} `{HasEquivs A} {a b} (f : a $<~> b)
+Definition cate_issect {A} `{HasEquivs A} {a b : A} (f : a $<~> b)
   : f^-1$ $o f $== Id a.
 Proof.
   refine (_ $@ cate_issect' a b f).
@@ -114,12 +116,12 @@ Proof.
   apply cate_buildequiv_fun'.
 Defined.
 
-Definition cate_isretr {A} `{HasEquivs A} {a b} (f : a $<~> b)
+Definition cate_isretr {A} `{HasEquivs A} {a b : A} (f : a $<~> b)
   : f $o f^-1$ $== Id b
   := cate_issect (A:=A^op) (b:=a) (a:=b) f.
 
 (** If [g] is a section of an equivalence, then it is the inverse. *)
-Definition cate_inverse_sect {A} `{HasEquivs A} {a b} (f : a $<~> b)
+Definition cate_inverse_sect {A} `{HasEquivs A} {a b : A} (f : a $<~> b)
   (g : b $-> a) (p : f $o g $== Id b)
   : cate_fun f^-1$ $== g.
 Proof.
@@ -131,7 +133,7 @@ Proof.
 Defined.
 
 (** If [g] is a retraction of an equivalence, then it is the inverse. *)
-Definition cate_inverse_retr {A} `{HasEquivs A} {a b} (f : a $<~> b)
+Definition cate_inverse_retr {A} `{HasEquivs A} {a b : A} (f : a $<~> b)
   (g : b $-> a) (p : g $o f $== Id a)
   : cate_fun f^-1$ $== g
   := cate_inverse_sect (A:=A^op) (a:=b) (b:=a) f g p.
@@ -620,7 +622,7 @@ Proof.
 Defined.
 
 Instance hasmorext_core {A : Type} `{HasEquivs A, !HasMorExt A}
-  `{forall x y (f g : uncore x $<~> uncore y), IsEquiv (ap (x := f) (y := g) cate_fun)}
+  `{forall (x y : core A) (f g : uncore x $<~> uncore y), IsEquiv (ap (x := f) (y := g) cate_fun)}
   : HasMorExt (core A).
 Proof.
   snapply Build_HasMorExt.

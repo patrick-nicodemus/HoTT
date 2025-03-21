@@ -9,6 +9,9 @@ Class IsGraph (A : Type) :=
   Hom : A -> A -> Type
 }.
 
+(** This tells Coq to not perform typeclass search on a goal of the form `IsGraph A` when the head of `A` is an evar, avoiding what is often a search involving all possible graph structures on all types.  With this hint in place, we need to occasionally annotate our terms to explicitly give the underlying type. *) 
+Hint Mode IsGraph ! : typeclass_instances.
+
 Notation "a $-> b" := (Hom a b).
 
 Definition graph_hfiber {B C : Type} `{IsGraph C} (F : B -> C) (c : C)
@@ -23,8 +26,10 @@ Class Is01Cat (A : Type) `{IsGraph A} :=
   cat_comp : forall (a b c : A), (b $-> c) -> (a $-> b) -> (a $-> c);
 }.
 
+Arguments Build_Is01Cat A &.
 Arguments cat_comp {A _ _ a b c} _ _.
 Notation "g $o f" := (cat_comp g f).
+Hint Mode Is01Cat ! - : typeclass_instances.
 
 Definition cat_postcomp {A} `{Is01Cat A} (a : A) {b c : A} (g : b $-> c)
   : (a $-> b) -> (a $-> c)
@@ -38,15 +43,16 @@ Definition cat_precomp {A} `{Is01Cat A} {a b : A} (c : A) (f : a $-> b)
 Class Is0Gpd (A : Type) `{Is01Cat A} :=
   { gpd_rev : forall {a b : A}, (a $-> b) -> (b $-> a) }.
 
+Hint Mode Is0Gpd ! - - : typeclass_instances.
 Definition GpdHom {A} `{Is0Gpd A} (a b : A) := a $-> b.
 Notation "a $== b" := (GpdHom a b).
 
 Instance reflexive_GpdHom {A} `{Is0Gpd A}
-  : Reflexive GpdHom
+  : Reflexive (A:=A) GpdHom
   := fun a => Id a.
 
 Instance reflexive_Hom {A} `{Is01Cat A}
-  : Reflexive Hom
+  : Reflexive (A:=A) Hom
   := fun a => Id a.
 
 Definition gpd_comp {A} `{Is0Gpd A} {a b c : A}
@@ -55,21 +61,21 @@ Definition gpd_comp {A} `{Is0Gpd A} {a b c : A}
 Infix "$@" := gpd_comp.
 
 Instance transitive_GpdHom {A} `{Is0Gpd A}
-  : Transitive GpdHom
+  : Transitive (A:=A) GpdHom
   := fun a b c f g => f $@ g.
 
 Instance transitive_Hom {A} `{Is01Cat A}
-  : Transitive Hom
+  : Transitive (A:=A) Hom
   := fun a b c f g => g $o f.
 
 Notation "p ^$" := (gpd_rev p).
 
 Instance symmetric_GpdHom {A} `{Is0Gpd A}
-  : Symmetric GpdHom
+  : Symmetric (A:=A) GpdHom
   := fun a b f => f^$.
 
 Instance symmetric_GpdHom' {A} `{Is0Gpd A}
-  : Symmetric Hom
+  : Symmetric (A:=A) Hom
   := fun a b f => f^$.
 
 Definition Hom_path {A : Type} `{Is01Cat A} {a b : A} (p : a = b) : (a $-> b).
@@ -84,12 +90,15 @@ Definition GpdHom_path {A} `{Is0Gpd A} {a b : A} (p : a = b) : a $== b
 Class Is0Functor {A B : Type} `{IsGraph A} `{IsGraph B} (F : A -> B)
   := { fmap : forall (a b : A) (f : a $-> b), F a $-> F b }.
 
+Hint Mode Is0Functor + - - - - : typeclass_instances.
+
 Arguments fmap {A B isgraph_A isgraph_B} F {is0functor_F a b} f : rename.
 
 Class Is2Graph (A : Type) `{IsGraph A}
   := isgraph_hom : forall (a b : A), IsGraph (a $-> b).
 Existing Instance isgraph_hom | 20.
 #[global] Typeclasses Transparent Is2Graph.
+Hint Mode Is2Graph ! - : typeclass_instances.
 
 (** ** Wild 1-categorical structures *)
 Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
@@ -106,6 +115,7 @@ Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
   cat_idr : forall (a b : A) (f : a $-> b), f $o Id a $== f;
 }.
 
+Hint Mode Is1Cat ! - - - : typeclass_instances.
 Existing Instance is01cat_hom.
 Existing Instance is0gpd_hom.
 Existing Instance is0functor_postcomp.
@@ -244,8 +254,9 @@ Definition mor_terminal_unique {A : Type} `{Is1Cat A} (x y : A) {h : IsTerminal 
 
 (** Generalizing function extensionality, "Morphism extensionality" states that homwise [GpdHom_path] is an equivalence. *)
 Class HasMorExt (A : Type) `{Is1Cat A} := {
-  isequiv_Htpy_path : forall a b f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
+  isequiv_Htpy_path : forall (a b : A) f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
 }.
+Hint Mode HasMorExt ! - - - - : typeclass_instances.
 
 Existing Instance isequiv_Htpy_path.
 
@@ -275,6 +286,8 @@ Class Is1Functor {A B : Type} `{Is1Cat A} `{Is1Cat B}
     fmap F (g $o f) $== fmap F g $o fmap F f;
 }.
 
+Hint Mode Is1Functor + - - - - - - - - - - - : typeclass_instances.
+
 Arguments fmap2 {A B
   isgraph_A is2graph_A is01cat_A is1cat_A
   isgraph_B is2graph_B is01cat_B is1cat_B}
@@ -296,17 +309,17 @@ Class Faithful {A B : Type} (F : A -> B) `{Is1Functor A B F} :=
 
 Section IdentityFunctor.
 
-  #[export] Instance is0functor_idmap {A : Type} `{IsGraph A} : Is0Functor idmap.
+  #[export] Instance is0functor_idmap {A : Type} `{IsGraph A} : Is0Functor (A:=A) idmap.
   Proof.
     by apply Build_Is0Functor.
   Defined.
 
-  #[export] Instance is1functor_idmap {A : Type} `{Is1Cat A} : Is1Functor idmap.
+  #[export] Instance is1functor_idmap {A : Type} `{Is1Cat A} : Is1Functor (A:=A) idmap.
   Proof.
     by apply Build_Is1Functor.
   Defined.
 
-  #[export] Instance isFaithful_idmap {A : Type} `{Is1Cat A}: Faithful idmap.
+  #[export] Instance isFaithful_idmap {A : Type} `{Is1Cat A}: Faithful (A:=A) idmap.
   Proof.
     by unfold Faithful.
   Defined.
@@ -384,6 +397,8 @@ Class Is1Gpd (A : Type) `{Is1Cat A, !Is0Gpd A} :=
   gpd_issect : forall {a b : A} (f : a $-> b), f^$ $o f $== Id a ;
   gpd_isretr : forall {a b : A} (f : a $-> b), f $o f^$ $== Id b ;
 }.
+
+Hint Mode Is1Gpd ! - - - - - : typeclass_instances.
 
 (** Some more convenient equalities for morphisms in a 1-groupoid. The naming scheme is similar to [PathGroupoids.v].*)
 

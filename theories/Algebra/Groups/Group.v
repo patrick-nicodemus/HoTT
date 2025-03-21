@@ -335,7 +335,7 @@ Coercion equiv_groupisomorphism : GroupIsomorphism >-> Equiv.
 
 (** The underlying pointed equivalence of a group isomorphism. *)
 Definition pequiv_groupisomorphism {A B : Group}
-  : GroupIsomorphism A B -> (A <~>* B)
+  : GroupIsomorphism A B -> (pEquiv A B)
   := fun f => Build_pEquiv _ _ f _.
 Coercion pequiv_groupisomorphism : GroupIsomorphism >-> pEquiv.
 
@@ -813,6 +813,7 @@ Instance is1cat_group : Is1Cat Group.
 Proof.
   by rapply Build_Is1Cat.
 Defined.
+Canonical is1cat_group.
 
 (** Under [Funext], the category of groups has morphism extensionality. *)
 Instance hasmorext_group `{Funext} : HasMorExt Group.
@@ -842,6 +843,9 @@ Proof.
   + intros G H f g p q.
     exact (isequiv_adjointify f g p q).
 Defined.
+
+Set Warnings "-redundant-canonical-projection,-projection-no-head-constant".
+Canonical Structure hasequivs_group.
 
 Instance is1cat_strong `{Funext} : Is1Cat_Strong Group.
 Proof.
@@ -1088,10 +1092,8 @@ Proof.
   - exact grp_prod_pr2.
   - intros K.
     exact grp_prod_corec.
-  - intros K f g.
-    exact (Id _).
-  - intros K f g.
-    exact (Id _).
+  - intros K f g. cbn; reflexivity.
+  - intros K f g. cbn; reflexivity.
   - intros K f g p q a.
     exact (path_prod' (p a) (q a)).
 Defined.

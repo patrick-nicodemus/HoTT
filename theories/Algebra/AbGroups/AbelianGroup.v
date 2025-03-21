@@ -145,18 +145,24 @@ Instance isgraph_abgroup : IsGraph AbGroup
 Instance is01cat_abgroup : Is01Cat AbGroup
   := is01cat_induced abgroup_group.
 
-Instance is01cat_grouphomomorphism {A B : AbGroup} : Is01Cat (A $-> B)
-  := is01cat_induced (@grp_homo_map A B).
-
-Instance is0gpd_grouphomomorphism {A B : AbGroup} : Is0Gpd (A $-> B)
-  := is0gpd_induced (@grp_homo_map A B).
-
 Instance is2graph_abgroup : Is2Graph AbGroup
   := is2graph_induced abgroup_group.
+
+Instance isgraph_abgrouphomomorphism {A B : AbGroup} : IsGraph (A $-> B)
+  := is2graph_induced abgroup_group A B.
+
+Instance is0gpd_abgrouphomomorphism {A B : AbGroup} : Is0Gpd (A $-> B)
+  := is0gpd_induced (@grp_homo_map A B).
 
 (** [AbGroup] forms a 1Cat *)
 Instance is1cat_abgroup : Is1Cat AbGroup
   := is1cat_induced _.
+
+Set Warnings "-projection-no-head-constant".
+Canonical is1cat_abgroup.
+
+Instance is01cat_abgrouphomomorphism {A B : AbGroup} : Is01Cat (A $-> B)
+  := is01cat_hom A B.
 
 Instance hasmorext_abgroup `{Funext} : HasMorExt AbGroup
   := hasmorext_induced _.

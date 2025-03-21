@@ -171,7 +171,7 @@ Proof.
   change (equiv_ptransformation_phomotopy (iscomplex_abses_pullback' _ _ (iscomplex_abses E)) U)
     with (equiv_path_abses_iso ((iscomplex_abses_pullback' _ _ (iscomplex_abses E)).1 U)).
   apply (ap equiv_path_abses_iso).
-  tapply path_hom.
+  rapply (path_hom (g:=(cxfib' E U).2)).
   refine (_ $@R abses_pullback_compose' (inclusion E) (projection E) U);
     unfold trans_comp.
   refine (_ $@R abses_pullback_homotopic' (projection E $o inclusion E) grp_homo_const (iscomplex_abses E) U).
@@ -247,8 +247,8 @@ Proof.
        nrefine (ap _ (abses_path_data_V q) @ _).
        apply eissect. }
   refine (equiv_concat_l _ _ oE _).
-  1: { refine (ap (fun x => (x $@ _).1) _).
-       tapply gpd_strong_1functor_V. }
+  1: { refine (ap (fun x => (x $@ (U.2).1).1) _).
+       tapply (gpd_strong_1functor_V (abses_pullback _)). }
   apply equiv_path_groupisomorphism.
 Defined.
 
@@ -261,7 +261,7 @@ Proof.
   srefine (_^$; _).
   1: by rapply (abses_pullback_component1_id' (abses_pullback_inclusion0_map' E F p)).
   lazy beta; unfold pr2.
-  refine (cat_assoc _ _ _ $@ _).
+  refine (cat_assoc _ (abses_pullback_compose' _ _ _) _ $@ _).
   refine (cat_assoc _ _ _ $@ _).
   apply gpd_moveR_Vh.
   apply gpd_moveL_hM.
@@ -315,7 +315,7 @@ Proof.
   generalize Q.
   equiv_intro (equiv_hfiber_abses_pullback _ X Y)^-1%equiv p;
     induction p.
-  refine ((_ $@R _) $@ _).
+  refine ((_ $@R (X.2)^$ ) $@ _).
   { Unshelve.
     2: exact (Id _).
     refine (fmap2 _ _ $@ fmap_id _ _).
@@ -366,8 +366,8 @@ Lemma hfiber_cxfib'_induced_path' `{Univalence} {A B C : AbGroup} (E : AbSES C B
   : path_hfiber_cxfib' (hfiber_cxfib'_inhabited E F p) Y.
 Proof.
   exists (hfiber_cxfib'_induced_path'0 E F p Y).
-  tapply gpd_moveR_Vh.
-  tapply gpd_moveL_hM.
+  tapply (gpd_moveR_Vh (q:=(Y.2).1)).
+  rapply gpd_moveL_hM.
   rapply gpd_moveR_Vh.
   intro x.
   srapply equiv_path_pullback_hset; split.
