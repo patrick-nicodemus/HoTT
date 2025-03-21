@@ -55,7 +55,6 @@ Existing Instance is1natural_cat_idl.
 Existing Instance is1natural_cat_idr.
 
 (** *** Whiskering functoriality *)
-
 Definition cat_postwhisker_pp {A} `{Is21Cat A} {a b c : A}
   {f g h : a $-> b} (k : b $-> c) (p : f $== g) (q : g $== h)
   : k $@L (p $@ q) $== (k $@L p) $@ (k $@L q)

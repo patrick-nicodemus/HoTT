@@ -129,7 +129,7 @@ Record pEquiv (A B : pType) := {
 
 (** TODO: It might be better behaved to define [pEquiv] as an equivalence and a proof that this equivalence is pointed. In pEquiv.v we have another constructor [Build_pEquiv'] which Coq can infer faster than [Build_pEquiv]. *)
 
-Infix "<~>*" := pEquiv : pointed_scope.
+Local Infix "<~>*" := pEquiv.
 
 (** Note: because we define [pMap] as a special case of [pForall], we must declare all coercions into [pForall], *not* into [pMap]. *)
 Coercion pointed_equiv_fun : pEquiv >-> pForall.
@@ -834,7 +834,7 @@ Definition phomotopy_path_V {A : pType} {P : pFam A}
   {f g : pForall A P} (p : f = g)
   : phomotopy_path (p^) ==* (phomotopy_path p)^*.
 Proof.
-  induction p. simpl. symmetry. exact gpd_rev_1.
+  induction p. simpl. symmetry. exact (gpd_rev_1 (a:=f)).
 Defined.
 
 (** Since pointed homotopies are equivalent to equalities, we can act as if they are paths and define a path induction for them. *)
@@ -1008,6 +1008,8 @@ Proof.
     + intros x; exact (r x).
     + intros x; exact (s x).
 Defined.
+
+Infix "<~>*" := (CatEquiv (A:=pType)) : pointed_scope.
 
 Instance hasmorext_core_ptype `{Funext} : HasMorExt (core pType).
 Proof.

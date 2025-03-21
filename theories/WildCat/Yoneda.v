@@ -400,7 +400,7 @@ Definition natequiv_opyon_equiv_0gpd {A : Type} `{HasEquivs A}
 Proof.
   snapply Build_NatEquiv.
   - intro c; exact (equiv_precompose_cat_equiv_0gpd e).
-  - tapply is1natural_opyoneda_0gpd.
+  - tapply (is1natural_opyoneda_0gpd a).
 Defined.
 
 (** ** The contravariant Yoneda lemma *)

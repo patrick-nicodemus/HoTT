@@ -27,6 +27,8 @@ Class HasEquivs (A : Type) `{Is1Cat A} :=
     (r : f $o g $== Id b) (s : g $o f $== Id a), CatIsEquiv' a b f;
 }.
 
+Hint Mode HasEquivs ! - - - - : typeclass_instances.
+
 (** Since apparently a field of a record can't be the source of a coercion (Coq complains about the uniform inheritance condition, although as officially stated that condition appears to be satisfied), we redefine all the fields of [HasEquivs]. *)
 
 Definition CatEquiv {A} `{HasEquivs A} (a b : A)

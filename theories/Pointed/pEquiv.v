@@ -111,7 +111,7 @@ Proof.
   - exact (equiv_precompose_cat_equiv f).
   - (* By using [pelim f], we can avoid [Funext] in this part of the proof. *)
     cbn; unfold "o*", point_pforall; cbn.
-    by pelim f.
+    unfold CatEquiv in f; cbn in f; by pelim f.
 Defined.
 
 Definition pequiv_pequiv_postcompose `{Funext} {A B C : pType} (f : B <~>* C)
@@ -120,7 +120,7 @@ Proof.
   srapply Build_pEquiv'.
   - exact (equiv_postcompose_cat_equiv f).
   - cbn; unfold "o*", point_pforall; cbn.
-    by pelim f.
+    unfold CatEquiv in f; simpl in f; by pelim f.
 Defined.
 
 Proposition equiv_pequiv_inverse `{Funext} {A B : pType}

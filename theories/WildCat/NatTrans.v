@@ -61,6 +61,8 @@ Class Is1Natural {A B : Type} `{IsGraph A, Is1Cat B}
   isnat_tr {a a'} (f : a $-> a') : fmap G f $o alpha a $== alpha a' $o fmap F f;
 }.
 
+Hint Mode Is1Natural ! - - - - - - - - - - - : typeclass_instances.
+
 Arguments Is1Natural {A B} {isgraph_A}
   {isgraph_B} {is2graph_B} {is01cat_B} {is1cat_B}
   F {is0functor_F} G {is0functor_G} alpha : rename.

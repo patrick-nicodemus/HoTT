@@ -34,7 +34,7 @@ Proof.
   - unfold IsCoherent; cbn.
     refine (_ @@ 1).
     refine (ap (ap f^-1) _).
-    pelim f.
+    unfold Equiv.CatEquiv in f; cbn in f; pelim f.
     refine (1 @@ _).
     exact iscoherent.
 Defined.

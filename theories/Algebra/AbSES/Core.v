@@ -335,7 +335,7 @@ Proof.
   equiv_intro (equiv_path_abses_iso (E:=E) (F:=F))^-1 p; induction p.
   refine (ap _ (eisretr _ _) @ _); symmetry.
   nrefine (ap (equiv_path_abses_iso o abses_path_data_inverse) equiv_path_absesV_1 @ _).
-  refine (ap equiv_path_abses_iso gpd_strong_rev_1 @ _).
+  refine (ap equiv_path_abses_iso (gpd_strong_rev_1 (a:=E)) @ _).
   exact equiv_path_abses_1.
 Defined.
 
@@ -403,7 +403,7 @@ Proof.
   induction p.
   refine (ap (ap f) (eisretr _ _) @ _).
   nrefine (_ @ ap equiv_path_abses_iso _).
-  2: { tapply path_hom.
+  2: { tapply (path_hom (g:=fmap f _)).
        srefine (_ $@ fmap2 _ _).
        2: exact (Id E).
        2: intro x; reflexivity.
@@ -426,7 +426,7 @@ Proof.
   2: apply (abses_ap_fmap g).
   nrefine (_ @ (abses_path_data_compose_beta _ _)^).
   napply (ap equiv_path_abses_iso).
-  tapply path_hom.
+  rapply (path_hom (f:=bp_pointed (g $o* f))).
   reflexivity.
 Defined.
 

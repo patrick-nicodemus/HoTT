@@ -100,7 +100,7 @@ Section Lemmata.
     : Is1Functor (fun z : A^op => prod_0gpd I (fun i => yon_0gpd (x i) z)).
   Proof.
     snapply Build_Is1Functor.
-    - intros a b f g p r i.
+    - intros a b f g p r i; cbn.
       refine (_ $@L _).
       exact p.
     - intros a r i.
@@ -782,7 +782,7 @@ Section Associativity.
       refine (_^$ $@ _ $@ _).
       1,3: tapply fmap11_comp.
       rapply fmap22.
-      1: exact (cat_idl _ $@ (cat_idr _)^$).
+      2: exact (cat_idl _ $@ (cat_idr _)^$).
       napply cat_binprod_beta_pr2.
   Defined.
 

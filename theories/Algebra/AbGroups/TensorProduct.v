@@ -754,7 +754,7 @@ Defined.
 Definition equiv_ab_tensor_prod_freeabgroup X Y
   : FreeAbGroup (X * Y) $<~> ab_tensor_prod (FreeAbGroup X) (FreeAbGroup Y).
 Proof.
-  srefine (let f:=_ in let g:=_ in cate_adjointify f g _ _).
+  srefine (let f:=_ in let g:=_ in cate_adjointify (A:=AbGroup) f g _ _).
   - snapply FreeAbGroup_rec.
     intros [x y].
     exact (tensor (freeabgroup_in x) (freeabgroup_in y)).
@@ -806,12 +806,11 @@ Proof.
 Defined.
 
 (** ** Tensor products distribute over direct sums *)
-
 Definition ab_tensor_prod_dist_l {A B C : AbGroup}
   : ab_tensor_prod A (ab_biprod B C)
     $<~> ab_biprod (ab_tensor_prod A B) (ab_tensor_prod A C).
 Proof.
-  stapply (let f := _ in let g := _ in cate_adjointify f g _ _).
+  srefine (cate_adjointify _ _ _ _).
   - snapply ab_tensor_prod_rec.
     + intros a bc.
       exact (tensor a (fst bc), tensor a (snd bc)).

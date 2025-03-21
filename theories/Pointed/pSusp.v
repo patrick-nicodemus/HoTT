@@ -261,7 +261,7 @@ Proof.
   - apply path_pforall.
     unfold equiv_adjointify, equiv_fun.
     napply (pmap_prewhisker _ fmap_loops_pconst @* _).
-    tapply cat_zero_l.
+    exact (cat_zero_l (A:=pType) _).
 Defined.
 
 (** And its naturality is easy. *)
@@ -288,10 +288,13 @@ Defined.
 
 Instance is1natural_loop_susp_adjoint_r `{Funext} (A : pType)
   : Is1Natural (opyon (psusp A)) (opyon A o loops)
-      (loop_susp_adjoint A).
+      (fun B => cate_fun ((loop_susp_adjoint A) B)).
 Proof.
   snapply Build_Is1Natural.
   intros B B' g f.
+  match goal with 
+  | [|- _ = ?b ] => change b with  (fmap loops g $o (fmap loops f $o (loop_susp_unit A)))
+  end. 
   refine ( _ @ cat_assoc_strong _ _ _).
   refine (ap (fun x => x o* loop_susp_unit A) _).
   apply path_pforall.
@@ -303,4 +306,3 @@ Lemma natequiv_loop_susp_adjoint_r `{Funext} (A : pType)
 Proof.
   rapply Build_NatEquiv.
 Defined.
-
