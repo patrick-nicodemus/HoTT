@@ -62,6 +62,7 @@ Existing Instances
 
 Notation "F ⊣ G" := (Adjunction F G).
 
+
 (** TODO: move but where? *)
 Lemma fun01_profunctor {A B C D : Type} (F : A -> B) (G : C -> D)
   `{Is0Functor A B F, Is0Functor C D G}
@@ -410,4 +411,3 @@ Proof.
   rapply is1natural_comp.
   rapply is1natural_yoneda.
 Defined.
-
