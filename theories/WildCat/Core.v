@@ -263,6 +263,7 @@ Class HasMorExt (A : Type) `{Is1Cat A} := {
   isequiv_Htpy_path : forall (a b : A) f g, IsEquiv (@GpdHom_path (a $-> b) _ _ _ f g)
 }.
 Hint Mode HasMorExt ! - - - - : typeclass_instances.
+#[export] Typeclasses Opaque HasMorExt.
 
 Existing Instance isequiv_Htpy_path.
 
