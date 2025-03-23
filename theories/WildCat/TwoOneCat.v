@@ -21,14 +21,16 @@ Class IsTruncatedBicat (A: Type) `{Is01Cat A} `{!Is2Graph A} := {
   bicat_idr_opp : forall {a b : A} (f : a $-> b), f $-> f $o Id a;
 }.
 
-Instance Is0Functor_bicat_postcomp `{A: Type} `{IsTruncatedBicat A} (a b c : A) (g : b $->c):
+Instance Is0Functor_bicat_postcomp `{A: Type}
+  `{IsTruncatedBicat A} (a b c : A) (g : b $->c):
   Is0Functor (cat_postcomp a g).
 Proof.
   unfold cat_postcomp.
   exact _.
 Defined.
 
-Instance Is0Functor_bicat_precomp `{A: Type} `{IsTruncatedBicat A} (a b c : A) (f : a $->b):
+Instance Is0Functor_bicat_precomp `{A: Type}
+  `{IsTruncatedBicat A} (a b c : A) (f : a $->b):
   Is0Functor (cat_precomp c f).
 Proof.
   unfold cat_precomp.
