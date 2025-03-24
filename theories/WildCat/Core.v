@@ -115,6 +115,7 @@ Class Is1Cat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
   cat_idr : forall (a b : A) (f : a $-> b), f $o Id a $== f;
 }.
 
+Arguments Build_Is1Cat A &.
 Hint Mode Is1Cat ! - - - : typeclass_instances.
 Existing Instance is01cat_hom.
 Existing Instance is0gpd_hom.
@@ -590,12 +591,10 @@ Class PreservesInitial {A B : Type} (F : A -> B)
 Existing Instance isinitial_preservesinitial.
 
 (** The initial morphism is preserved by such a functor. *)
-Lemma fmap_initial {A B : Type} (F : A -> B)
-  `{PreservesInitial A B F} (x y : A) (h : IsInitial x)
-  : fmap F (mor_initial x y) $== mor_initial (F x) (F y).
-Proof.
-  exact (mor_initial_unique _ _ _)^$.
-Defined.
+Definition fmap_initial {A B : Type} (F : A -> B)
+  `{q: PreservesInitial A B F} (x y : A) (h : IsInitial x)
+  : fmap F (mor_initial x y) $== mor_initial (h:=q _ _)  (F x) (F y)
+  := (mor_initial_unique _ _ _)^$.
 
 Class PreservesTerminal {A B : Type} (F : A -> B)
   `{Is1Functor A B F} : Type
@@ -604,12 +603,10 @@ Class PreservesTerminal {A B : Type} (F : A -> B)
 Existing Instance isterminal_preservesterminal.
 
 (** The terminal morphism is preserved by such a functor. *)
-Lemma fmap_terminal {A B : Type} (F : A -> B)
-  `{PreservesTerminal A B F} (x y : A) (h : IsTerminal y)
-  : fmap F (mor_terminal x y) $== mor_terminal (F x) (F y).
-Proof.
-  exact (mor_terminal_unique _ _ _)^$.
-Defined.
+Definition fmap_terminal {A B : Type} (F : A -> B)
+  `{q: PreservesTerminal A B F} (x y : A) (h : IsTerminal y)
+  : fmap F (mor_terminal x y) $== mor_terminal (h:=q _ _ ) (F x) (F y)
+  := (mor_terminal_unique _ _ _)^$.
 
 (** *** Functors preserving distinguished objects *)
 
