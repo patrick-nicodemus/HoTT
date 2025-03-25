@@ -599,6 +599,17 @@ Defined.
 Definition path_zero_morphism_pconst (A B : pType)
   : (@pconst A B) = zero_morphism := idpath.
 
+(** Composition is a functor on pointed functions, it sends pairs of homotopies to homotopies. We won't use this as an Instance, prefer the next proof. *)
+Definition Is0Functor_ptype_comp (A B C : pType)
+  : Is0Functor (uncurry (cat_comp (A:= pType)(a:=A)(b:=B)(c:=C))).
+Proof.
+  constructor.
+  intros [a b] [a' b'] [sa sb]; simpl in *.
+  transitivity (a o* b').
+  - apply pmap_postwhisker; exact sb.
+  - apply pmap_prewhisker; exact sa.
+Defined.
+
 Instance Is0Bifunctor_ptype_comp (A B C : pType)
   : Is0Bifunctor (cat_comp (A:= pType)(a:=A)(b:=B)(c:=C)).
 Proof.
@@ -644,6 +655,24 @@ Defined.
 
 Instance is3graph_ptype : Is3Graph pType
   := fun f g => is2graph_pforall _ _.
+
+Lemma pmap_prewhisker2 {A B C : pType}
+  {g g' : B ->* C} (f : A ->* B)
+  {p q : g ==* g'} (h : p ==* q ) : pmap_prewhisker f p ==* pmap_prewhisker f q.
+Proof.
+  srapply Build_pHomotopy.
+  - exact (fun x => (h (f x))).
+  - by pelim f h p q g g'.
+Defined.
+
+Lemma pmap_postwhisker2 {A B C : pType} (g : B ->* C) {f f' : A ->* B}
+  {p q : f ==* f'} (h: p ==* q)
+  : pmap_postwhisker g p ==* pmap_postwhisker g q.
+Proof.
+  srapply Build_pHomotopy.
+  - exact (fun y => ap02 _ (h y)).
+  - by pelim h p q f f' g.
+Defined.
 
 Instance is1Bifunctor_ptype_comp (A B C : pType): Is1Bifunctor (cat_comp (a:=A) (b:=B) (c:=C)).
 Proof.
