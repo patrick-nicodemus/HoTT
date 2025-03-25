@@ -1,6 +1,6 @@
 Require Import Basics.Overture Basics.Tactics Basics.Equivalences Basics.PathGroupoids.
 Require Import Types.Equiv.
-Require Import WildCat.Core WildCat.Equiv WildCat.NatTrans WildCat.Bifunctor WildCat.TwoOneCat.
+Require Import WildCat.Core WildCat.Equiv WildCat.NatTrans WildCat.Bifunctor WildCat.TwoOneCat WildCat.Prod.
 
 (** ** The (1-)category of types *)
 
