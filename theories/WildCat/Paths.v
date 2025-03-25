@@ -48,6 +48,15 @@ Proof.
   exact (@ap _ _ (cat_precomp c f)).
 Defined.
 
+Instance is0functor_cat_comp_paths (A :Type) `{Is01Cat A} (a b c :A)
+(* TODO: Rename H in Prod.isgraph_prod *)
+  : Is0Functor (H:=Prod.isgraph_prod _ _) (uncurry (cat_comp (a:=a) (b:=b) (c:=c))).
+Proof.
+  constructor.
+  intros [q q'] [p p'] [s s']; simpl in *.
+  destruct s, s'; reflexivity.
+Defined.
+
 (** Composition is a 0-bifunctor when the 2-cells are paths. *)
 Instance is0bifunctor_cat_comp_paths (A :Type) `{Is01Cat A} (a b c :A)
     : Is0Bifunctor (cat_comp (a:=a) (b:=b) (c:=c))

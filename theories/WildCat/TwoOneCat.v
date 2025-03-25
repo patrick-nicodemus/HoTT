@@ -29,7 +29,7 @@ Proof.
   exact _.
 Defined.
 
-Instance Is0Functor_bicat_precomp `{A: Type}
+Instance Is0Functor_bicat_precomp {A: Type}
   `{Is1Bicat A} (a b c : A) (f : a $->b):
   Is0Functor (cat_precomp c f).
 Proof.

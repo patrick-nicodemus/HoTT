@@ -48,6 +48,15 @@ Instance is0bifunctor_type_comp {A B C : Type} :
   Is0Bifunctor (cat_comp (a:=A) (b:=B) (c:=C))
   := Build_Is0Bifunctor'' _.
 
+(** Not an instance here, but might be useful elsewhere. *)
+Definition is0functor_type_comp {A B C : Type} :
+  Is0Functor (uncurry (cat_comp (a:=A) (b:=B) (c:=C))).
+Proof.
+  apply Build_Is0Functor.
+  intros [g f] [g' f'] [pg pf] x; simpl in pf, pg; simpl.
+  exact (ap g (pf x) @ (pg (f' x))).
+Defined.
+
 Instance is1cat_strong_type : Is1Cat_Strong Type.
 Proof.
   srapply Build_Is1Cat_Strong; cbn; intros; reflexivity.
