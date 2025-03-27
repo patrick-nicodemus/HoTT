@@ -2,7 +2,50 @@ Require Import Basics.Overture Basics.Tactics.
 Require Import WildCat.Core.
 Require Import WildCat.NatTrans.
 
+Declare Scope twocat.
+Notation "f $=> g" := (Hom (A:=Hom _ _) f g) : twocat.
+Local Open Scope twocat.
+
 (** * Wild (2,1)-categories *)
+
+(** ** Wild 1-categorical structures *)
+Class Is1Bicat (A : Type) `{!IsGraph A, !Is2Graph A, !Is01Cat A} :=
+{
+  is01bicat_hom :: forall (a b : A), Is01Cat (a $-> b) ;
+  is0functor_bicat_postcomp :: forall (a b c : A) (g : b $-> c), Is0Functor (cat_postcomp a g) ;
+  is0functor_bicat_precomp :: forall (a b c : A) (f : a $-> b), Is0Functor (cat_precomp c f) ;
+  bicat_assoc : forall {a b c d : A} (f : a $-> b) (g : b $-> c) (h : c $-> d),
+    (h $o g) $o f $=> h $o (g $o f);
+  bicat_assoc_opp : forall {a b c d : A} (f : a $-> b) (g : b $-> c) (h : c $-> d),
+    h $o (g $o f) $=> (h $o g) $o f;
+  bicat_idl : forall {a b : A} (f : a $-> b), Id b $o f $=> f;
+  bicat_idl_opp : forall {a b : A} (f : a $-> b), f $=> Id b $o f;
+  bicat_idr : forall {a b : A} (f : a $-> b), f $o Id a $=> f;
+  bicat_idr_opp : forall {a b : A} (f : a $-> b), f $=> f $o Id a;
+}.
+
+Notation "p $@R h" := (fmap (cat_precomp _ h) p) : twocat.
+Notation "h $@L p" := (fmap (cat_postcomp _ h) p) : twocat.
+Notation "a $| b" := (cat_comp (A:=Hom _ _) b a) : twocat.
+
+Unset Typeclass Resolution For Unification.
+Class IsBicat (A : Type) `{Is1Bicat A} `{!Is3Graph A} :=
+{
+  is1cat_hom : forall (a b : A), Is1Cat (a $-> b) ;
+  is1functor_postcomp : forall (a b c : A) (g : b $-> c), Is1Functor (cat_postcomp a g) ;
+  is1functor_precomp : forall (a b c : A) (f : a $-> b), Is1Functor (cat_precomp c f) ;
+  bifunctor_coh_comp : forall {a b c : A} {f f' : a $-> b}  {g g' : b $-> c}
+    (p : f $=> f') (p' : g $=> g'),
+    (p' $@R f) $| (g' $@L p) $== (g $@L p) $| (p' $@R f');
+  isnatural_cat_assoc : forall {a b c d : A},
+    Is1Natural
+      (fun p : (a $-> b) * (b $-> c) * (c $-> d) =>
+         let '(f,g,h) := p in (h $o g) $o f)
+      (fun p : (a $-> b) * (b $-> c) * (c $-> d) =>
+         let '(f,g,h) := p in h $o (g $o f))
+      (fun p : (a $-> b) * (b $-> c) * (c $-> d) =>
+         let '(f,g,h) := p in bicat_assoc f g h)
+}.
 
 Class Is21Cat (A : Type) `{Is1Cat A, !Is3Graph A} :=
 {
