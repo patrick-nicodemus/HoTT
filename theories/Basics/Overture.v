@@ -107,36 +107,69 @@ Arguments transitivity {A R _} / {_ _ _} _ _.
     If we want to remove the use of [cbn], we can play tricks with [Module Type]s and [Module]s to declare [inverse] directly as an instance of [Symmetric] without changing its type.  Then we can simply [unfold symmetry].  See the comments around the definition of [inverse]. *)
 
 (** Overwrite [reflexivity] so that we use our version of [Reflexive] rather than having the tactic look for it in the standard library.  We make use of the built-in reflexivity to handle, e.g., single-constructor inductives. *)
-Ltac old_reflexivity := reflexivity.
-Tactic Notation "reflexivity" :=
-  old_reflexivity
-|| (intros;
-  let R := match goal with |- ?R ?x ?y => constr:(R) end in
-  let pre_proof_term_head := constr:(@reflexivity _ R _) in
-  let proof_term_head := (eval cbn in pre_proof_term_head) in
-  apply (proof_term_head : forall x, R x x)).
+(* Ltac old_reflexivity := reflexivity. *)
+
+Ltac2 Notation "reflexivity" :=
+  try reflexivity;
+  Control.enter (fun () => (intros;
+  let r := match! goal with [|- ?r ?x ?y] => r end in
+  let pre_proof_term_head := constr:(@reflexivity _ $r _) in
+  let proof_term_head := (eval cbn in $pre_proof_term_head) in
+  apply ($proof_term_head : forall x, $r x x))).
+
+(* Tactic Notation "reflexivity" := *)
+(*   old_reflexivity *)
+(* || (intros; *)
+(*   let R := match goal with |- ?R ?x ?y => constr:(R) end in *)
+(*   let pre_proof_term_head := constr:(@reflexivity _ R _) in *)
+(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
+(*   apply (proof_term_head : forall x, R x x)). *)
 
 (** Even if we weren't using [cbn], we would have to redefine symmetry, since the built-in Coq version is sometimes too smart for its own good, and will occasionally fail when it should not. *)
-Tactic Notation "symmetry" :=
-  let R := match goal with |- ?R ?x ?y => constr:(R) end in
-  let x := match goal with |- ?R ?x ?y => constr:(x) end in
-  let y := match goal with |- ?R ?x ?y => constr:(y) end in
-  let pre_proof_term_head := constr:(@symmetry _ R _) in
-  let proof_term_head := (eval cbn in pre_proof_term_head) in
-  refine (proof_term_head y x _); change (R y x).
 
-Tactic Notation "etransitivity" open_constr(y) :=
-  let R := match goal with |- ?R ?x ?z => constr:(R) end in
-  let x := match goal with |- ?R ?x ?z => constr:(x) end in
-  let z := match goal with |- ?R ?x ?z => constr:(z) end in
-  let pre_proof_term_head := constr:(@transitivity _ R _) in
-  let proof_term_head := (eval cbn in pre_proof_term_head) in
-  refine (proof_term_head x y z _ _); [ change (R x y) | change (R y z) ].
+Ltac2 symmetry () :=
+  let (r, x, y) :=
+    match! goal with
+    | [|- ?r ?x ?y] => (r, x, y)
+    end
+  in
+  let pre_proof_term_head := constr:(@symmetry _ $r _) in
+  let proof_term_head := (eval cbn in $pre_proof_term_head) in
+  refine '($proof_term_head $y $x _); change ($r $y $x).
 
-Tactic Notation "etransitivity" := etransitivity _.
+Ltac2 Notation symm := symmetry ().
+
+(* Tactic Notation "symmetry" := *)
+(*   let R := match goal with |- ?R ?x ?y => constr:(R) end in *)
+(*   let x := match goal with |- ?R ?x ?y => constr:(x) end in *)
+(*   let y := match goal with |- ?R ?x ?y => constr:(y) end in *)
+(*   let pre_proof_term_head := constr:(@symmetry _ R _) in *)
+(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
+(*   refine (proof_term_head y x _); change (R y x). *)
+
+Ltac2 Notation "etransitivity" y(constr) :=
+  let (r, x, z) :=
+    match! goal with
+    | [|- ?r ?x ?z] => (r, x, z)
+    end
+  in
+  let pre_proof_term_head := constr:(@transitivity _ $r _) in
+  let proof_term_head := (eval cbn in $pre_proof_term_head) in
+  refine '($proof_term_head $x $y $z _ _);
+  Control.dispatch [ (fun () => change ($r $x $y)) ; fun () => change ($r $y $z)].
+
+(* Tactic Notation "etransitivity" open_constr(y) := *)
+(*   let R := match goal with |- ?R ?x ?z => constr:(R) end in *)
+(*   let x := match goal with |- ?R ?x ?z => constr:(x) end in *)
+(*   let z := match goal with |- ?R ?x ?z => constr:(z) end in *)
+(*   let pre_proof_term_head := constr:(@transitivity _ R _) in *)
+(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
+(*   refine (proof_term_head x y z _ _); [ change (R x y) | change (R y z) ]. *)
+
+(* Tactic Notation "etransitivity" := etransitivity _. *)
 
 (** We redefine [transitivity] to work without needing to include [Setoid] or be using Leibniz equality, and to give proofs that unfold to [concat]. *)
-Tactic Notation "transitivity" constr(x) := etransitivity x.
+Ltac2 Notation "transitivity" x(constr) := etransitivity $x.
 
 (** ** Basic definitions *)
 
@@ -446,10 +479,9 @@ Global Arguments ap10 {A B}%_type_scope {f g}%_function_scope h%_path_scope _.
 (** For the benefit of readers of the HoTT Book: *)
 Notation happly := ap10 (only parsing).
 
-Definition ap11 {A B} {f g : A -> B} (h : f = g) {x y : A} (p : x = y) : f x = g y.
-Proof.
-  case h, p; reflexivity.
-Defined.
+Definition ap11 {A B} {f g : A -> B} (h : f = g) {x y : A} (p : x = y)
+  : f x = g y
+  := match h with | idpath => match p with | idpath => idpath end end.
 
 Global Arguments ap11 {A B}%_type_scope {f g}%_function_scope h%_path_scope {x y} p%_path_scope.
 
@@ -600,10 +632,14 @@ Proof.
   - exact istrunc.
 Defined.
 
+Ltac2 Notation "srefine" x(preterm) :=
+  refine (Constr.Pretype.pretype Constr.Pretype.Flags.open_constr_flags_no_tc
+            (Constr.Pretype.expected_oftype (Control.goal())) x).
+
 Definition isequiv_istrunc_unfold (n : trunc_index) (A : Type)
   : IsEquiv (istrunc_unfold n A).
 Proof.
-  simple refine (Build_IsEquiv _ _ (istrunc_unfold n A) _ _ _ _).
+  srefine (Build_IsEquiv _ _ (istrunc_unfold n A) _ _ _ _).
   - destruct n.
     + intros [center contr]; exact (Build_Contr _ center contr).
     + intros H. exact (istrunc_S _ H).

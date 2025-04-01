@@ -7,91 +7,165 @@ Require Import Basics.Overture.
 (** This module implements various tactics used in the library. *)
 
 (** If the goal is [x = z], [path_via y] will replace this with two goals, [x = y] and [y = z]. *)
-Ltac path_via mid :=
-  apply @concat with (y := mid); auto with path_hints.
+Ltac2 path_via mid :=
+  apply @concat with (y := $mid); auto with path_hints.
 
 (** The following tactic is designed to be more or less interchangeable with [induction n as [ | n' IH ]] whenever [n] is a [nat] or a [trunc_index].  The difference is that it produces proof terms involving [fix] explicitly rather than [nat_ind] or [trunc_index_ind], and therefore does not introduce higher universe parameters. It works if [n] is in the context or in the goal. *)
-Ltac simple_induction n n' IH :=
-  try generalize dependent n;
-  fix IH 1;
+Ltac2 simple_induction n n' ih :=
+  try (generalize (* dependent *) $n);
+  Std.fix_ ih 1;
   intros [| n'];
-  [ clear IH | specialize (IH n') ].
+  let iht := Control.hyp ih in
+  Control.dispatch [(fun () => clear ih);(fun () => specialize ($iht $n'))].
 
-Ltac simple_induction' n :=
-  let IH := fresh "IH" in
-  simple_induction n n IH.
+Ltac2 simple_induction' n :=
+  let ih := Fresh.in_goal @IH in
+  simple_induction n n ih.
 
 (** Debugging tactics to show the goal during evaluation. *)
 
-Ltac show_goal := match goal with [ |- ?T ] => idtac T end.
+Module Show_goal.
+  Import Printf.
+  Ltac2 Notation "show_goal" := match! goal with
+                     [ |- ?t ] => printf "%t" t end.
 
-Ltac show_hyp id :=
-  match goal with
-    | [ H := ?b : ?T |- _ ] =>
-      match H with
-        | id => idtac id ":=" b ":" T
-      end
-    | [ H : ?T |- _ ] =>
-      match H with
-        | id => idtac id  ":"  T
-      end
-  end.
+  Ltac2 show_hyp id :=
+    match! goal with
+    | [ h := ?b : ?t |- _ ] =>
+        if Ident.equal h id then
+          printf "%I := %t : %t" h b t
+        else ()
+    | [ h : ?t |- _ ] =>
+        if Ident.equal h id then
+          printf "%I : %t" h t
+        else ()
+    end.
 
-Ltac show_hyps :=
-  try match reverse goal with
-        | [ H : ?T |- _ ] => show_hyp H ; fail
-      end.
+(* Ltac show_hyp id := *)
+(*   match goal with *)
+(*     | [ H := ?b : ?T |- _ ] => *)
+(*       match H with *)
+(*         | id => idtac id ":=" b ":" T *)
+(*       end *)
+(*     | [ H : ?T |- _ ] => *)
+(*       match H with *)
+(*         | id => idtac id  ":"  T *)
+(*       end *)
+(*   end. *)
+
+Ltac2 Notation "show_hyps" :=
+  try (match! reverse goal with
+       | [ h := ?c : ?t |- _ ] => printf "%I := %t : %t" h c t; fail
+       | [ h : ?t |- _ ] => printf "%I : %t" h t; fail
+      end).
+
+(* Ltac show_hyps := *)
+(*   try match reverse goal with *)
+(*         | [ H : ?T |- _ ] => show_hyp H ; fail *)
+(*       end. *)
+  
+End Show_goal.
+Export Show_goal.
 
 (** Do something on the last hypothesis, or fail *)
 
-Ltac on_last_hyp tac :=
-  match goal with [ H : _ |- _ ] => first [ tac H | fail 1 ] end.
+Ltac2 on_last_hyp tac := lazy_match! goal with [ h : _ |- _ ] => tac h end.
+
+(* Ltac on_last_hyp tac := *)
+(*   match goal with [ H : _ |- _ ] => first [ tac H | fail 1 ] end. *)
 
 (** Revert the last hypothesis. *)
 
-Ltac revert_last :=
-  match goal with
-    [ H : _ |- _ ] => revert H
+Ltac2 revert_last () :=
+  lazy_match! goal with
+    [ h : _ |- _ ] => revert h
   end.
+
+Ltac2 Notation "revert_last" := revert_last ().
+
+(* Ltac revert_last := *)
+(*   match goal with *)
+(*     [ H : _ |- _ ] => revert H *)
+(*   end. *)
 
 (** Repeatedly reverse the last hypothesis, putting everything in the goal. *)
 
-Ltac reverse := repeat revert_last.
+Ltac2 reverse () := repeat0 revert_last.
+(* Ltac reverse := repeat revert_last. *)
 
 (** Reverse everything up to hypothesis id (not included). *)
 
-Ltac revert_until id :=
-  on_last_hyp ltac:(fun id' =>
-    match id' with
-      | id => idtac
-      | _ => revert id' ; revert_until id
-    end).
+Ltac2 rec revert_until id :=
+  on_last_hyp (fun id' =>
+                 if Ident.equal id id' then () else
+                   revert id'; revert_until id).
+
+(* Ltac revert_until id := *)
+(*   on_last_hyp ltac:(fun id' => *)
+(*     match id' with *)
+(*       | id => idtac *)
+(*       | _ => revert id' ; revert_until id *)
+(*     end). *)
 
 (** Clear duplicated hypotheses *)
 
-Ltac clear_dup :=
-  match goal with
-    | [ H : ?X |- _ ] =>
-      match goal with
-        | [ H' : ?Y |- _ ] =>
-          match H with
-            | H' => fail 2
-            | _ => unify X Y ; (clear H' || clear H)
-          end
-      end
+Ltac2 rec pairwise (f : 'a -> 'a -> unit) l :=
+  match l with
+  | [] => ()
+  | head :: tail => List.iter (f head) tail; pairwise f tail
   end.
 
-Ltac clear_dups := repeat clear_dup.
+Ltac2 Notation "clear_dup" :=
+  let hypotheses := Control.hyps () in
+  let f (x0, _, x1) (y0,_,y1) := try (Std.unify x1 y1;
+                    try (Std.clear [x0]); try (Std.clear[y0]))
+  in pairwise f hypotheses.
+  
+  (* match! goal with *)
+  (*   | [ h : ?x |- _ ] => *)
+  (*     match! goal with *)
+  (*       | [ h' : ?y |- _ ] => *)
+  (*           if Ident.eq h h' then _ else  *)
+  (*           match h with *)
+  (*           | H' => fail 2 *)
+  (*           | _ => unify X Y ; (clear H' || clear H) *)
+  (*         end *)
+  (*     end *)
+  (* end. *)
+
+(* Ltac clear_dup := *)
+(*   match goal with *)
+(*     | [ H : ?X |- _ ] => *)
+(*       match goal with *)
+(*         | [ H' : ?Y |- _ ] => *)
+(*           match H with *)
+(*             | H' => fail 2 *)
+(*             | _ => unify X Y ; (clear H' || clear H) *)
+(*           end *)
+(*       end *)
+(*   end. *)
+
+(* Ltac clear_dups := repeat clear_dup. *)
 
 (** Try to clear everything except some hypothesis *)
 
-Ltac clear_except hyp :=
-  repeat match goal with [ H : _ |- _ ] =>
-           match H with
-             | hyp => fail 1
-             | _ => clear H
-           end
-         end.
+Ltac2 clear_except hyp :=
+  repeat (match! goal with
+  | [ h: _ |- _ ] => if Ident.equal h hyp then Control.zero Match_failure else
+                 Std.clear [h]
+  end).
+
+(* Ltac clear_except hyp := *)
+(*   repeat match goal with [ H : _ |- _ ] => *)
+(*            match H with *)
+(*              | hyp => fail 1 *)
+(*              | _ => clear H *)
+(*            end *)
+(*          end. *)
+
+Ltac2 on_application f tac t :=
+  match! t with
+  | context [f ]
 
 Ltac on_application f tac T :=
   match T with
