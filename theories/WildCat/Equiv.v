@@ -498,8 +498,8 @@ Proof.
 Defined.
 
 Class IsUnivalent1Cat (A : Type) `{HasEquivs A}
-  := isequiv_cat_equiv_path : forall a b, IsEquiv (@cat_equiv_path A _ _ _ _ _ a b).
-Typeclasses Opaque IsUnivalent1Cat.
+  := isequiv_cat_equiv_path : forall (a b : A), IsEquiv (@cat_equiv_path A _ _ _ _ _ a b).
+#[export] Typeclasses Opaque IsUnivalent1Cat.
 Existing Instance isequiv_cat_equiv_path.
 
 Definition cat_path_equiv {A : Type} `{IsUnivalent1Cat A} (a b : A)
