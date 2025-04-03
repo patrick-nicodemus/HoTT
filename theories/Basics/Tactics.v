@@ -1,5 +1,5 @@
 Require Import Basics.Overture.
-
+Import Ltac2.Ltac2.
 (** TODO: Clean up *)
 
 (** * Basic tactics *)
@@ -41,17 +41,17 @@ Module Show_goal.
         else ()
     end.
 
-(* Ltac show_hyp id := *)
-(*   match goal with *)
-(*     | [ H := ?b : ?T |- _ ] => *)
-(*       match H with *)
-(*         | id => idtac id ":=" b ":" T *)
-(*       end *)
-(*     | [ H : ?T |- _ ] => *)
-(*       match H with *)
-(*         | id => idtac id  ":"  T *)
-(*       end *)
-(*   end. *)
+Ltac show_hyp id :=
+  match goal with
+    | [ H := ?b : ?T |- _ ] =>
+      match H with
+        | id => idtac id ":=" b ":" T
+      end
+    | [ H : ?T |- _ ] =>
+      match H with
+        | id => idtac id  ":"  T
+      end
+  end.
 
 Ltac2 Notation "show_hyps" :=
   try (match! reverse goal with
@@ -59,10 +59,10 @@ Ltac2 Notation "show_hyps" :=
        | [ h : ?t |- _ ] => printf "%I : %t" h t; fail
       end).
 
-(* Ltac show_hyps := *)
-(*   try match reverse goal with *)
-(*         | [ H : ?T |- _ ] => show_hyp H ; fail *)
-(*       end. *)
+Ltac show_hyps :=
+  try match reverse goal with
+        | [ H : ?T |- _ ] => show_hyp H ; fail
+      end.
   
 End Show_goal.
 Export Show_goal.
@@ -71,8 +71,8 @@ Export Show_goal.
 
 Ltac2 on_last_hyp tac := lazy_match! goal with [ h : _ |- _ ] => tac h end.
 
-(* Ltac on_last_hyp tac := *)
-(*   match goal with [ H : _ |- _ ] => first [ tac H | fail 1 ] end. *)
+Ltac on_last_hyp tac :=
+  match goal with [ H : _ |- _ ] => first [ tac H | fail 1 ] end.
 
 (** Revert the last hypothesis. *)
 
@@ -83,15 +83,15 @@ Ltac2 revert_last () :=
 
 Ltac2 Notation "revert_last" := revert_last ().
 
-(* Ltac revert_last := *)
-(*   match goal with *)
-(*     [ H : _ |- _ ] => revert H *)
-(*   end. *)
+Ltac revert_last :=
+  match goal with
+    [ H : _ |- _ ] => revert H
+  end.
 
 (** Repeatedly reverse the last hypothesis, putting everything in the goal. *)
 
 Ltac2 reverse () := repeat0 revert_last.
-(* Ltac reverse := repeat revert_last. *)
+Ltac reverse := repeat revert_last.
 
 (** Reverse everything up to hypothesis id (not included). *)
 
@@ -100,12 +100,12 @@ Ltac2 rec revert_until id :=
                  if Ident.equal id id' then () else
                    revert id'; revert_until id).
 
-(* Ltac revert_until id := *)
-(*   on_last_hyp ltac:(fun id' => *)
-(*     match id' with *)
-(*       | id => idtac *)
-(*       | _ => revert id' ; revert_until id *)
-(*     end). *)
+Ltac revert_until id :=
+  on_last_hyp ltac:(fun id' =>
+    match id' with
+      | id => idtac
+      | _ => revert id' ; revert_until id
+    end).
 
 (** Clear duplicated hypotheses *)
 
@@ -121,31 +121,19 @@ Ltac2 Notation "clear_dup" :=
                     try (Std.clear [x0]); try (Std.clear[y0]))
   in pairwise f hypotheses.
   
-  (* match! goal with *)
-  (*   | [ h : ?x |- _ ] => *)
-  (*     match! goal with *)
-  (*       | [ h' : ?y |- _ ] => *)
-  (*           if Ident.eq h h' then _ else  *)
-  (*           match h with *)
-  (*           | H' => fail 2 *)
-  (*           | _ => unify X Y ; (clear H' || clear H) *)
-  (*         end *)
-  (*     end *)
-  (* end. *)
+Ltac clear_dup :=
+  match goal with
+    | [ H : ?X |- _ ] =>
+      match goal with
+        | [ H' : ?Y |- _ ] =>
+          match H with
+            | H' => fail 2
+            | _ => unify X Y ; (clear H' || clear H)
+          end
+      end
+  end.
 
-(* Ltac clear_dup := *)
-(*   match goal with *)
-(*     | [ H : ?X |- _ ] => *)
-(*       match goal with *)
-(*         | [ H' : ?Y |- _ ] => *)
-(*           match H with *)
-(*             | H' => fail 2 *)
-(*             | _ => unify X Y ; (clear H' || clear H) *)
-(*           end *)
-(*       end *)
-(*   end. *)
-
-(* Ltac clear_dups := repeat clear_dup. *)
+Ltac clear_dups := repeat clear_dup.
 
 (** Try to clear everything except some hypothesis *)
 
@@ -155,17 +143,13 @@ Ltac2 clear_except hyp :=
                  Std.clear [h]
   end).
 
-(* Ltac clear_except hyp := *)
-(*   repeat match goal with [ H : _ |- _ ] => *)
-(*            match H with *)
-(*              | hyp => fail 1 *)
-(*              | _ => clear H *)
-(*            end *)
-(*          end. *)
-
-Ltac2 on_application f tac t :=
-  match! t with
-  | context [f ]
+Ltac clear_except hyp :=
+  repeat match goal with [ H : _ |- _ ] =>
+           match H with
+             | hyp => fail 1
+             | _ => clear H
+           end
+         end.
 
 Ltac on_application f tac T :=
   match T with
@@ -367,6 +351,26 @@ Tactic Notation "do_with_holes'" tactic3(x) uconstr(p) :=
   x uconstr:(p _) ||
   x uconstr:(p).
 
+(** Applying a tactic to a term with increasingly many arguments *)
+
+Ltac2 rec until_exhausted f l :=
+  match l with
+  | [] => Control.zero No_value
+  | hd :: tl => Control.plus (fun () => f hd) (fun e => until_exhausted f tl)
+  end.
+
+Ltac2 do_with_holes tac (p : constr) :=
+  let p_w_holes i :=
+    let hole_array := Array.make i '_ in
+    let t := Constr.Unsafe.check (Constr.Unsafe.make (Constr.Unsafe.App p hole_array)) in
+    match t with
+    | Val t => t
+    | Err e => Control.zero e
+    end
+  in
+  until_exhausted (fun i => let t := p_w_holes i in tac t)
+    (List.init 15 (fun x => x)).
+
 (** We keep a list of global axioms that we will solve automatically, even when not using typeclass search. *)
 Unset Primitive Projections.
 Class IsGlobalAxiom (A : Type) : Type0 := {}.
@@ -380,10 +384,13 @@ Instance is_global_axiom_funext : IsGlobalAxiom Funext := {}.
 Instance is_global_axiom_propresizing : IsGlobalAxiom PropResizing := {}.
 
 Ltac is_global_axiom A := let _ := constr:(_ : IsGlobalAxiom A) in idtac.
+Ltac2 is_global_axiom a := let _ := constr:(_ : IsGlobalAxiom $a) in ().
 
 Ltac global_axiom := try match goal with
     | |- ?G  => is_global_axiom G; exact _
-end.
+                       end.
+Ltac2 Notation "global_axiom" :=
+  try (match! goal with [|- ?g] => is_global_axiom g; exact _ end).
 
 (** A shorter name for [simple refine]. *)
 Tactic Notation "srefine" uconstr(term) := simple refine term.
@@ -392,11 +399,23 @@ Tactic Notation "nrefine" uconstr(term) := notypeclasses refine term; global_axi
 (** A shorter name for [simple notypeclasses refine]; also handles global axioms. *)
 Tactic Notation "snrefine" uconstr(term) := simple notypeclasses refine term; global_axiom.
 
+(** A shorter name for [notypeclasses refine]; also handles global axioms. *)
+Ltac2 nrefine (term : preterm) :=
+  refine (Constr.Pretype.pretype Constr.Pretype.Flags.open_constr_flags_no_tc
+            (Constr.Pretype.expected_oftype (Control.goal())) term);
+  global_axiom.
+
+Ltac2 snrefine (term : preterm) :=
+  unshelve (nrefine term);
+  global_axiom.
+
 (** The tactics [napply], [rapply] and [tapply] are similar but they differ in their reliance on typeclass search. [napply t] tries [nrefine t], [nrefine (t _)], [nrefine (t _ _)], so on until it succeeds in unifying with the goal. At each iteration, [nrefine] computes the type of the given term and tries to unify it with the goal; if it succeeds, all holes remaining in the term after unification are new goals. *)
 Tactic Notation "napply" uconstr(term)
   := do_with_holes ltac:(fun x => nrefine x) term.
 Tactic Notation "napply'" uconstr(term)
   := do_with_holes' ltac:(fun x => nrefine x) term.
+
+Ltac2 napply (x : constr) := do_with_holes (fun x => Control.refine (fun () => x)) x.
 
 (** TODO: remove when min Coq/Rocq version is 9.1 (~ end of 2026). *)
 #[deprecated(note="nrapply was renamed to napply and will be removed soon",
@@ -570,10 +589,26 @@ Ltac get_constructor_head T :=
                              exact tt)) in
   h.
 
+(** This tactic gets the constructor of any one-constructor inductive type. *)
+Ltac2 get_constructor_head t :=
+  match Constr.Unsafe.kind t with
+  | Constr.Unsafe.Ind inductive instance =>
+      let c:= Constr.Unsafe.constructor inductive 0 in
+      Constr.Unsafe.make (Constr.Unsafe.Constructor c instance)
+  | _ => Control.zero (Invalid_argument (Some(Message.of_string "Not an inductive type.")))
+  end.
+
 (* A version of econstructor that doesn't resolve typeclasses. *)
 Ltac ntc_constructor :=
   lazymatch goal with
   | [ |- ?G ] => let build := get_constructor_head G in
+                 napply build
+  end.
+
+(* A version of econstructor that doesn't resolve typeclasses. *)
+Ltac2 Notation "ntc_constructor" :=
+  lazy_match! goal with
+  | [ |- ?g ] => let build := get_constructor_head g in
                  napply build
   end.
 
@@ -643,6 +678,14 @@ Ltac tryif_cps require if_yes if_no :=
              | _ => ltac:(if_no)
              end in res ().
 
+(* Ltac2 tryif_cps require if_yes if_no := *)
+(*   let res := match constr:(Set) with *)
+(*              | _ => let __ := match constr:(Set) with _ => require () end in *)
+(*                     ltac2:(if_yes) *)
+(*              | _ => ltac2:(if_no) *)
+(*              end in res (). *)
+
+
 (** The following tactic [issig] proves automatically that a record type is equivalent to a nested Sigma-type. Specifically, it proves a goal that looks like
 
 <<
@@ -675,6 +718,15 @@ Local Ltac peel_evars term :=
   | _ => term
   end.
 
+Local Ltac2 rec peel_evars term :=
+  lazy_match! term with
+  | ?f ?x
+    => if Constr.has_evar x then
+        peel_evars f
+      else x
+  | _ => term
+  end.
+
 Local Ltac pi_to_sig ty :=
   lazymatch (eval cbv beta in ty) with
   | forall (x : ?T) (y : @?A x), @?P x y
@@ -685,9 +737,24 @@ Local Ltac pi_to_sig ty :=
   | ?T -> _ => T
   end.
 
+Local Ltac2 rec pi_to_sig ty :=
+  lazy_match! (eval cbv beta in $ty) with
+  | forall (x : ?t) (y : @?a x), @?p x y
+    =>  constr:(@sig $t (fun x' : $t =>
+          ltac2:(let x' := &x' in
+                 let res := pi_to_sig
+          constr:(forall y : $a $x', $p $x' y) in exact $res)))
+  | ?t -> _ => t
+  end.
+
 Local Ltac ctor_to_sig ctor :=
   let ctor := peel_evars ctor in
   let t := type of ctor in
+  pi_to_sig t.
+
+Local Ltac2 ctor_to_sig ctor := 
+  let ctor := peel_evars ctor in
+  let t := Constr.type ctor in
   pi_to_sig t.
 
 Local Ltac unify_first_evar_with term u :=
@@ -741,12 +808,88 @@ Ltac issig :=
   (** Proving [eisadj] *)
   | reflexivity ].
 
+Import Printf.
+Ltac2 print_case t :=
+  match Constr.Unsafe.kind t with
+  | Constr.Unsafe.Case case_ (t1, rel) inv t2 tarr =>
+      printf "%t" t1;
+      printf "%t" (Array.get tarr 0);
+      printf "%t" (Array.get tarr 1)
+  | Constr.Unsafe.Ind ind inst => printf "inductive"
+  | _ => printf "Not a case"
+  end.
+
+
+Inductive Abc (n : nat) : nat -> Type :=
+| Leq_eq : Abc n n
+| Leq_s m : Abc n m -> Abc n (S m).
+
+Goal nat -> nat.
+  intro x.
+  print_case constr:(match @x with | O => (S x) | S y => y end).
+  
+Ltac2 issig () :=
+  hnf; (* First we make sure things are normalised. *)
+  (* We get the types either side of the equivalence. *)
+  let (a, b) := match! goal with  [|- ?sigma <~> ?record] => (sigma,record) end in
+  (** We build an equivalence with 5 holes. *)
+  snrefine  (* We don't want typeclass search running. *)
+    preterm:(Build_Equiv $a $b _ (Build_IsEquiv $a $b (fun u => _) (fun v => _)
+                                    (fun v => _) (fun u => _) (fun _ => _)));
+  Control.dispatch [
+      (fun () =>
+        let t := match! goal with [|- ?t]=> t end in
+        (* We want to get the constructor of the record. Note that we use [ntc_constructor] instead of [econstructor] since we don't want to resolve typeclasses. If we used [econstructor] then the constructor would be wrong for many records whose fields are classes. [ntc_constructor] is defined in Overture.v. *)
+        let built := open_constr:( ltac2:(ntc_constructor) : $t) in
+        let A' := ctor_to_sig built in
+        unify A A';
+        unify_with_projections built u;
+        refine built)
+        ;
+    (fun () => ());
+    (fun () => ());
+    (fun () => ());
+    fun () => ()
+  ].
+  (* Control.dispatch [ *)
+                   
+  (*   ]. *)
+  
+  (* let A := match goal with |- ?sigma <~> ?record => constr:(sigma) end in *)
+  (* let B := match goal with |- ?sigma <~> ?record => constr:(record) end in *)
+  (* let u := fresh "u" in *)
+  (* let v := fresh "v" in *)
+  (* (** We build an equivalence with 5 holes. *) *)
+  (* snrefine  (* We don't want typeclass search running. *) *)
+  (*   (Build_Equiv A B _ (Build_IsEquiv A B (fun u => _) (fun v => _) *)
+  (*     (fun v => _) (fun u => _) (fun _ => _))); *)
+  (* (** Going from a sigma type to a record *) *)
+  (* [ (* let built be the constructor of T *) *)
+  (*   let T := match goal with |- ?T => T end in *)
+  (*   (* We want to get the constructor of the record. Note that we use [ntc_constructor] instead of [econstructor] since we don't want to resolve typeclasses. If we used [econstructor] then the constructor would be wrong for many records whose fields are classes. [ntc_constructor] is defined in Overture.v. *) *)
+  (*   let built := open_constr:(ltac:(ntc_constructor) : T) in *)
+  (*   let A' := ctor_to_sig built in *)
+  (*   unify A A'; *)
+  (*   unify_with_projections built u; *)
+  (*   refine built *)
+  (* (** Going from a record to a sigma type *) *)
+  (* | refine_with_exist_as_much_as_needed_then_destruct v *)
+  (* (** Proving [eissect] *) *)
+  (* | destruct v; cbn [pr1 pr2]; reflexivity *)
+  (* (** Proving [eisretr] *) *)
+  (* | reflexivity *)
+  (* (** Proving [eisadj] *) *)
+  (* | reflexivity ]. *)
+
+
+
 (** We show how the tactic works in a couple of examples. *)
 
 Definition issig_equiv (A B : Type)
   : {f : A -> B & IsEquiv f} <~> Equiv A B.
 Proof.
-  issig.
+  issig().
+  - 
 Defined.
 
 Definition issig_isequiv {A B : Type} (f : A -> B)

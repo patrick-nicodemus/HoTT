@@ -4,7 +4,7 @@
 
 (** Import the file of reserved notations so we maintain consistent level notations throughout the library. *)
 Require Export Basics.Settings Basics.Notations.
-
+Import Ltac2.Ltac2.
 Local Set Polymorphic Inductive Cumulativity.
 
 (** This command prevents Coq from automatically defining the eliminator functions for inductive types.  We will define them ourselves to match the naming scheme of the HoTT Book.  In principle we ought to make this [Global], but unfortunately the tactics [induction] and [elim] assume that the eliminators are named in Coq's way, e.g. [thing_rect], so making it global could cause unpleasant surprises for people defining new inductive types.  However, when you do define your own inductive types you are encouraged to also do [Local Unset Elimination Schemes] and then use [Scheme] to define [thing_ind], [thing_rec], and (for compatibility with [induction] and [elim]) [thing_rect], as we have done below for [paths], [Empty], [Unit], etc.  We are hoping that this will be fixed eventually; see https://github.com/coq/coq/issues/3745.  *)
@@ -107,25 +107,35 @@ Arguments transitivity {A R _} / {_ _ _} _ _.
     If we want to remove the use of [cbn], we can play tricks with [Module Type]s and [Module]s to declare [inverse] directly as an instance of [Symmetric] without changing its type.  Then we can simply [unfold symmetry].  See the comments around the definition of [inverse]. *)
 
 (** Overwrite [reflexivity] so that we use our version of [Reflexive] rather than having the tactic look for it in the standard library.  We make use of the built-in reflexivity to handle, e.g., single-constructor inductives. *)
-(* Ltac old_reflexivity := reflexivity. *)
+Ltac old_reflexivity := reflexivity.
+
+Tactic Notation "reflexivity" :=
+  old_reflexivity
+|| (intros;
+  let R := match goal with |- ?R ?x ?y => constr:(R) end in
+  let pre_proof_term_head := constr:(@reflexivity _ R _) in
+  let proof_term_head := (eval cbn in pre_proof_term_head) in
+  apply (proof_term_head : forall x, R x x)).
 
 Ltac2 Notation "reflexivity" :=
   try reflexivity;
-  Control.enter (fun () => (intros;
-  let r := match! goal with [|- ?r ?x ?y] => r end in
-  let pre_proof_term_head := constr:(@reflexivity _ $r _) in
-  let proof_term_head := (eval cbn in $pre_proof_term_head) in
-  apply ($proof_term_head : forall x, $r x x))).
-
-(* Tactic Notation "reflexivity" := *)
-(*   old_reflexivity *)
-(* || (intros; *)
-(*   let R := match goal with |- ?R ?x ?y => constr:(R) end in *)
-(*   let pre_proof_term_head := constr:(@reflexivity _ R _) in *)
-(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
-(*   apply (proof_term_head : forall x, R x x)). *)
+  Control.enter (
+      fun () =>
+        (intros;
+         let r := match! goal with [|- ?r ?x ?y] => r end in
+         let pre_proof_term_head := constr:(@reflexivity _ $r _) in
+         let proof_term_head := (eval cbn in $pre_proof_term_head) in
+         apply ($proof_term_head : forall x, $r x x))).
 
 (** Even if we weren't using [cbn], we would have to redefine symmetry, since the built-in Coq version is sometimes too smart for its own good, and will occasionally fail when it should not. *)
+
+Tactic Notation "symmetry" :=
+  let R := match goal with |- ?R ?x ?y => constr:(R) end in
+  let x := match goal with |- ?R ?x ?y => constr:(x) end in
+  let y := match goal with |- ?R ?x ?y => constr:(y) end in
+  let pre_proof_term_head := constr:(@symmetry _ R _) in
+  let proof_term_head := (eval cbn in pre_proof_term_head) in
+  refine (proof_term_head y x _); change (R y x).
 
 Ltac2 symmetry () :=
   let (r, x, y) :=
@@ -139,14 +149,6 @@ Ltac2 symmetry () :=
 
 Ltac2 Notation symm := symmetry ().
 
-(* Tactic Notation "symmetry" := *)
-(*   let R := match goal with |- ?R ?x ?y => constr:(R) end in *)
-(*   let x := match goal with |- ?R ?x ?y => constr:(x) end in *)
-(*   let y := match goal with |- ?R ?x ?y => constr:(y) end in *)
-(*   let pre_proof_term_head := constr:(@symmetry _ R _) in *)
-(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
-(*   refine (proof_term_head y x _); change (R y x). *)
-
 Ltac2 Notation "etransitivity" y(constr) :=
   let (r, x, z) :=
     match! goal with
@@ -158,15 +160,15 @@ Ltac2 Notation "etransitivity" y(constr) :=
   refine '($proof_term_head $x $y $z _ _);
   Control.dispatch [ (fun () => change ($r $x $y)) ; fun () => change ($r $y $z)].
 
-(* Tactic Notation "etransitivity" open_constr(y) := *)
-(*   let R := match goal with |- ?R ?x ?z => constr:(R) end in *)
-(*   let x := match goal with |- ?R ?x ?z => constr:(x) end in *)
-(*   let z := match goal with |- ?R ?x ?z => constr:(z) end in *)
-(*   let pre_proof_term_head := constr:(@transitivity _ R _) in *)
-(*   let proof_term_head := (eval cbn in pre_proof_term_head) in *)
-(*   refine (proof_term_head x y z _ _); [ change (R x y) | change (R y z) ]. *)
+Tactic Notation "etransitivity" open_constr(y) :=
+  let R := match goal with |- ?R ?x ?z => constr:(R) end in
+  let x := match goal with |- ?R ?x ?z => constr:(x) end in
+  let z := match goal with |- ?R ?x ?z => constr:(z) end in
+  let pre_proof_term_head := constr:(@transitivity _ R _) in
+  let proof_term_head := (eval cbn in pre_proof_term_head) in
+  refine (proof_term_head x y z _ _); [ change (R x y) | change (R y z) ].
 
-(* Tactic Notation "etransitivity" := etransitivity _. *)
+Tactic Notation "etransitivity" := etransitivity _.
 
 (** We redefine [transitivity] to work without needing to include [Setoid] or be using Leibniz equality, and to give proofs that unfold to [concat]. *)
 Ltac2 Notation "transitivity" x(constr) := etransitivity $x.
@@ -633,8 +635,9 @@ Proof.
 Defined.
 
 Ltac2 Notation "srefine" x(preterm) :=
-  refine (Constr.Pretype.pretype Constr.Pretype.Flags.open_constr_flags_no_tc
-            (Constr.Pretype.expected_oftype (Control.goal())) x).
+  unshelve (
+      refine (Constr.Pretype.pretype Constr.Pretype.Flags.open_constr_flags_with_tc
+                (Constr.Pretype.expected_oftype (Control.goal())) x)).
 
 Definition isequiv_istrunc_unfold (n : trunc_index) (A : Type)
   : IsEquiv (istrunc_unfold n A).
