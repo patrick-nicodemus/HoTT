@@ -126,18 +126,13 @@ Class Is21Cat (A : Type) `{IsBicat A} :=
 
 Definition cat_postwhisker_pp {A} `{IsBicat A} {a b c : A}
   {f g h : a $-> b} (k : b $-> c) (p : f $=> g) (q : g $=> h)
-  : k $@L (p $| q) $== (k $@L p) $| (k $@L q).
-Proof.
-  rapply fmap_comp.
-Defined.
+  : k $@L (p $| q) $== (k $@L p) $| (k $@L q)
+  := fmap_comp _ _ _.
 
 Definition cat_prewhisker_pp {A} `{IsBicat A} {a b c : A}
   {f g h : b $-> c} (k : a $-> b) (p : f $=> g) (q : g $=> h)
   : (p $| q) $@R k $== (p $@R k) $| (q $@R k)
   := fmap_comp _ _ _.
-Proof.
-  rapply fmap_comp.
-Defined.
 
 Instance is1bifunctor_bicat_comp {A: Type} `{IsBicat A} {a b c : A} :
   Is1Bifunctor (cat_comp (a:=a) (b:=b) (c:=c)).
