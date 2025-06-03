@@ -71,6 +71,9 @@ Section AssumeStuff.
                    (fun x y => @Empty_rec@{u} Type@{s} x)
                    (fun x y => Empty_rec x).
 
+  Instance IsHPropUnit@{u} : IsHProp@{u} Unit
+    := istrunc_contr@{u}.
+
   Definition graph_succ@{} (A : Graph) : Graph.
   Proof.
     srefine (Build_Graph (sum@{s s} (vert A) Unit) _ _).
@@ -79,7 +82,11 @@ Section AssumeStuff.
       + exact Unit.
       + exact Empty.
       + exact Unit.
-    - cbn; intros [x|x] [y|y]; exact _.
+    - cbn; intros [x|x] [y|y].
+      + exact _.
+      + exact IsHPropUnit@{s}.
+      + exact _.
+      + exact IsHPropUnit@{s}.
   Defined.
 
   (** The following lemmas about graphs will be used later on to prove
@@ -148,10 +155,10 @@ Section AssumeStuff.
     Qed.
 
     Definition graph_unsucc_equiv_vert@{} : vert A <~> vert B
-      := equiv_unfunctor_sum_l@{s s s s s s} f Ha Hb.
+      := equiv_unfunctor_sum_l@{s s s s} f Ha Hb.
 
     Definition graph_unsucc_equiv_edge@{} (x y : vert A)
-      : iff@{s s s} (edge A x y) (edge B (graph_unsucc_equiv_vert x) (graph_unsucc_equiv_vert y)).
+      : iff@{s s} (edge A x y) (edge B (graph_unsucc_equiv_vert x) (graph_unsucc_equiv_vert y)).
     Proof.
       pose (h := e (inl x) (inl y)).
       rewrite <- (unfunctor_sum_l_beta f Ha x) in h.
@@ -213,7 +220,7 @@ Section AssumeStuff.
     := @sig@{u p} Graph in_N@{u}.
 
   Definition path_N@{} (n m : N) : n.1 = m.1 -> n = m
-    := path_sigma_hprop@{u p p} n m.
+    := path_sigma_hprop@{u p} n m.
 
   Definition zero@{} : N.
   Proof.
@@ -250,7 +257,7 @@ Section AssumeStuff.
       equiv_intro (equiv_path_graph graph_zero graph_zero) fe'.
       destruct fe' as [f' e'].
       apply equiv_ap; try exact _.
-      apply path_sigma_hprop, path_equiv@{s s s}, path_arrow.
+      apply path_sigma_hprop, path_equiv@{s s}, path_arrow.
       intros [].
     - try clear B;intros B BC.
       refine (contr_equiv (B = B) (graph_succ_path_equiv B B)).
@@ -301,7 +308,7 @@ Section AssumeStuff.
   Local Instance ishprop_graph_zero_or_succ@{} : forall n : Graph,
       IsHProp ((n = graph_zero) + { m : N & n = graph_succ m.1 }).
   Proof.
-    intros n. apply ishprop_sum@{u p p}.
+    intros n. apply ishprop_sum@{u p}.
     - apply (@istrunc_equiv_istrunc _ _ (equiv_path_inverse _ _)),ishprop_path_graph_in_N.
       exact zero.2.
     - apply @ishprop_sigma_disjoint.
@@ -377,7 +384,7 @@ Section AssumeStuff.
   Definition N_neq_succ@{} (n : N) : n <> succ n.
   Proof.
     revert n; apply N_propind@{p}.
-    - intros n;exact istrunc_arrow@{p p p}.
+    - intros n;exact istrunc_arrow@{p p}.
     - apply zero_neq_succ.
     - intros n H e.
       apply H.
@@ -404,7 +411,9 @@ Section AssumeStuff.
               | inr b, inl a => Empty
               | inr b, inr b' => edge B b b'
               end).
-    intros [a|b] [a'|b']; exact _.
+    intros [a|b] [a'|b'].
+    2: exact istrunc_contr@{s}.
+    all: exact _.
   Defined.
 
   Definition graph_add_zero_r@{} (A : Graph) : graph_add A graph_zero = A.
@@ -412,7 +421,7 @@ Section AssumeStuff.
     apply equiv_path_graph.
     exists (sum_empty_r (vert A)).
     intros [x|[]] [y|[]].
-    apply iff_reflexive@{u s}.
+    apply iff_reflexive@{_ _}.
   Qed.
 
   Definition graph_add_zero_l@{} (A : Graph) : graph_add graph_zero A = A.
@@ -420,7 +429,7 @@ Section AssumeStuff.
     apply equiv_path_graph.
     exists (sum_empty_l (vert A)).
     intros [[]|x] [[]|y].
-    apply iff_reflexive@{u s}.
+    apply iff_reflexive@{_ _}.
   Qed.
 
   Definition graph_add_succ@{} (A B : Graph)
@@ -428,7 +437,7 @@ Section AssumeStuff.
   Proof.
     apply equiv_path_graph.
     exists (equiv_inverse (equiv_sum_assoc (vert A) (vert B) Unit)).
-    intros [x|[x|[]]] [y|[y|[]]];apply iff_reflexive@{u s}.
+    intros [x|[x|[]]] [y|[y|[]]];apply iff_reflexive@{_ _}.
   Qed.
 
   Definition graph_add_assoc@{} (A B C : Graph)
@@ -436,18 +445,19 @@ Section AssumeStuff.
   Proof.
     apply equiv_path_graph.
     exists (equiv_sum_assoc _ _ _).
-    intros [[x|x]|x] [[y|y]|y]; apply iff_reflexive@{u s}.
+    intros [[x|x]|x] [[y|y]|y]; apply iff_reflexive@{_ _}.
   Qed.
 
   Definition graph_one@{} : Graph
-    := Build_Graph Unit (fun _ _ : Unit => Unit) _.
+    := Build_Graph Unit (fun _ _ : Unit => Unit)
+         (fun _ _ => istrunc_contr@{s}).
 
   Definition graph_add_one_succ@{} (A : Graph)
     : graph_add A graph_one = graph_succ A.
   Proof.
     apply equiv_path_graph.
     exists equiv_idmap.
-    intros [x|[]] [y|[]]; apply iff_reflexive@{u s}.
+    intros [x|[]] [y|[]]; apply iff_reflexive@{_ _}.
   Qed.
 
   Definition graph_succ_zero@{} : graph_succ graph_zero = graph_one.
@@ -614,7 +624,7 @@ Section AssumeStuff.
   Definition N_lt_irref@{} (n : N) : ~(n < n).
   Proof.
     revert n; apply N_propind@{p}.
-    - intros n;exact istrunc_arrow@{p p p}.
+    - intros n;exact istrunc_arrow@{p p}.
     - apply N_lt_zero.
     - intros n H [k K].
       apply H; exists k.
@@ -642,7 +652,7 @@ Section AssumeStuff.
   Definition N_succ_nlt@{} (n : N) : ~(succ n < n).
   Proof.
     revert n; apply N_propind@{p}.
-    - intros n;exact istrunc_arrow@{p p p}.
+    - intros n;exact istrunc_arrow@{p p}.
     - apply N_lt_zero.
     - intros n H L.
       apply H; clear H.
@@ -789,7 +799,7 @@ Section AssumeStuff.
       - refine (_ oE equiv_inverse (equiv_sigma_assoc _ _)).
         apply equiv_functor_sigma_id; intros f.
         cbn; apply equiv_sigma_prod0.
-      - refine (@istrunc_sigma@{nr nr nr} _ _ _ _ _).
+      - refine (@istrunc_sigma@{nr nr} _ _ _ _ _).
         + srefine (Build_Contr _ _ _).
           * exists (fun _ => x0); reflexivity.
           * intros [g H].
@@ -815,7 +825,7 @@ Section AssumeStuff.
     Local Definition equiv_N_segment_succ_maps@{} (n : N)
       : Equiv@{nr nr} (prod@{nr x} ({ m : N & m <= n} -> X) X) ({ m : N & m <= succ n} -> X).
     Proof.
-      refine (_ oE @equiv_sum_ind@{x nr nr nr nr p p p}
+      refine (_ oE @equiv_sum_ind@{_ _}
                 _ {m:N&m<=n} Unit (fun _ => X) oE _).
       - apply equiv_precompose'.
         apply equiv_N_segment_succ.

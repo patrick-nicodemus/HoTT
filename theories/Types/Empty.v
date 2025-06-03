@@ -18,7 +18,7 @@ Instance contr_from_Empty@{u} {_ : Funext} (A : Empty -> Type@{u})
   : Contr@{u} (forall x:Empty, A x).
 Proof.
   refine (Build_Contr@{u} _ (Empty_ind A) _).
-  intros f; apply path_forall@{Set u u}; intros x; elim x.
+  intros f; apply path_forall@{Set u}; intros x; elim x.
 Defined.
 
 Lemma Empty_rec {T : Type} (falso: Empty) : T.
@@ -28,7 +28,7 @@ Instance isequiv_empty_rec@{u} `{Funext} (A : Type@{u})
   : IsEquiv@{Set u} (fun (_ : Unit) => @Empty_rec A) | 0
   := isequiv_adjointify@{Set u} _
   (fun _ => tt)
-  (fun f => path_forall@{Set u u} _ _ (fun x => Empty_rec x))
+  (fun f => path_forall@{Set u} _ _ (fun x => Empty_rec x))
   (fun x => match x with tt => idpath end).
 
 Definition equiv_empty_rec@{u} `{Funext} (A : Type@{u})

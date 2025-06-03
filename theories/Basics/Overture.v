@@ -519,9 +519,9 @@ Existing Class Funext.
 Axiom isequiv_apD10 : forall `{Funext} (A : Type) (P : A -> Type) f g, IsEquiv (@apD10 A P f g).
 Existing Instance isequiv_apD10.
 
-Definition path_forall `{Funext} {A : Type} {P : A -> Type} (f g : forall x : A, P x)
+Definition path_forall@{u u0} `{Funext} {A : Type@{u}} {P : A -> Type@{u0}} (f g : forall x : A, P x)
   : f == g -> f = g
-  := (@apD10 A P f g)^-1.
+  := (@apD10@{u u0} A P f g)^-1.
 
 Global Arguments path_forall {_ A%_type_scope P} (f g)%_function_scope _.
 

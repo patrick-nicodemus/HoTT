@@ -18,8 +18,10 @@ Section TruncType.
     issig.
   Defined.
 
-  Definition equiv_path_trunctype' {n : trunc_index} (A B : TruncType n)
-    : (A = B :> Type) <~> (A = B :> TruncType n).
+  Definition equiv_path_trunctype'@{u} {n : trunc_index}
+    (A : TruncType@{u} n)
+    (B : TruncType@{u} n)
+    : (A = B :> Type@{u}) <~> (A = B :> TruncType n).
   Proof.
     refine ((equiv_ap' issig_trunctype^-1 _ _)^-1 oE _).
     exact (equiv_path_sigma_hprop (_;_) (_;_)).
@@ -33,13 +35,15 @@ Section TruncType.
     intros []; reflexivity.
   Defined.
 
-  Definition equiv_path_trunctype {n : trunc_index} (A B : TruncType n)
-    : (A <~> B) <~> (A = B :> TruncType n)
+  Definition equiv_path_trunctype@{u} {n : trunc_index}
+    (A : TruncType@{u} n)
+    (B : TruncType@{u} n)
+    : (A <~> B) <~> (A = B :> TruncType@{u} n)
     := equiv_path_trunctype' _ _ oE equiv_path_universe _ _.
 
-  Definition path_trunctype@{a b} {n : trunc_index} {A B : TruncType n}
+  Definition path_trunctype@{u} {n : trunc_index} {A B : TruncType n}
     : A <~> B -> (A = B :> TruncType n)
-  := equiv_path_trunctype@{a b} A B.
+  := equiv_path_trunctype@{u} A B.
 
   #[export] Instance isequiv_path_trunctype {n : trunc_index} {A B : TruncType n}
     : IsEquiv (@path_trunctype n A B) := _.
@@ -98,7 +102,7 @@ Section TruncType.
   Proof.
     apply istrunc_S.
     intros A B.
-    refine (istrunc_equiv_istrunc _ (equiv_path_trunctype@{i j} A B)).
+    refine (istrunc_equiv_istrunc _ (equiv_path_trunctype@{_} A B)).
     case n as [ | n'].
     - exact contr_equiv_contr_contr. (* The reason is different in this case. *)
     - exact istrunc_equiv.

@@ -14,12 +14,12 @@ Definition trm@{i j | } {A : Type@{i}} : A -> Trm@{i j} A
   := fun a P HP f => f a.
 
 (** Here [k] plays the role of [max(i,j+1)]. *)
-Instance ishprop_Trm@{i j k | i <= k, j < k} `{Funext} (A : Type@{i})
+Instance ishprop_Trm@{i j} `{Funext} (A : Type@{i})
   : IsHProp (Trm@{i j} A).
 Proof.
-  napply istrunc_forall@{k k k}; intro B.
-  napply istrunc_forall@{j k k}; intro ishp.
-  apply istrunc_forall@{k j k}.
+  napply istrunc_forall@{_ _}; intro B.
+  napply istrunc_forall@{_ _}; intro ishp.
+  apply istrunc_forall@{_ _}.
 Defined.
 
 (** As mentioned above, it eliminates into propositions in universe [j]. *)
@@ -41,7 +41,7 @@ Definition functor_Trm@{i j i' j' | i' <= j, j' < j} `{Funext}
   := Trm_rec (trm o f).
 
 (** We also record the dependent induction principle.  But it only computes propositionally. *)
-Definition Trm_ind@{i j k | i <= k, j < k} {A : Type@{i}} `{Funext}
+Definition Trm_ind@{i j|} {A : Type@{i}} `{Funext}
   {P : Trm@{i j} A -> Type@{j}} {p : forall x, IsHProp@{j} (P x)} (f : forall a, P (trm a))
   : forall x, P x.
 Proof.
@@ -50,7 +50,7 @@ Proof.
   rapply x.
   intro a.
   refine (transport P _ (f a)).
-  rapply path_ishprop@{k}.
+  rapply path_ishprop@{_ _}.
 Defined.
 
 (** The universe constraints go away if we assume propositional resizing. *)

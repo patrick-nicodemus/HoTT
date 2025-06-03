@@ -69,11 +69,11 @@ Coercion TypeO_pr1 O (T : Type_ O) := @pr1 Type (In O) T.
 (** The second component of [TypeO] is unique.  *)
 Definition path_TypeO@{i j} {fs : Funext} O (T T' : Type_@{i j} O) (p : T.1 = T'.1)
   : T = T'
-  := path_sigma_hprop@{j i j} T T' p.
+  := path_sigma_hprop@{j i} T T' p.
 
 Definition equiv_path_TypeO@{i j} {fs : Funext} O (T T' : Type_@{i j} O)
   : (paths@{j} T.1 T'.1) <~> (T = T')
-  := equiv_path_sigma_hprop@{j i j} T T'.
+  := equiv_path_sigma_hprop@{_ _} T T'.
 
 (** Types in [TypeO] are always in [O]. *)
 Instance inO_TypeO {O : Subuniverse} (A : Type_ O) : In O A
@@ -526,7 +526,7 @@ Section Reflective_Subuniverse.
     Defined.
 
     (** Thus, [T] is in a subuniverse as soon as [to O T] admits a retraction. *)
-    Definition inO_to_O_retract (T:Type) (mu : O T -> T)
+    Definition inO_to_O_retract@{u} (T:Type@{u}) (mu : O T -> T)
     : mu o (to O T) == idmap -> In O T.
     Proof.
       intros H.
@@ -610,7 +610,7 @@ Section Reflective_Subuniverse.
                (Z : Type@{z}) `{In@{i} O Z}
       : ooExtendableAlong@{a b z i} f (fun _ => Z).
     Proof.
-      refine (cancelL_ooextendable@{a b i z i i i i i} _ _ (to O B) _ _).
+      refine (cancelL_ooextendable _ _ (to O B) _ _).
       1:exact (extendable_to_O'@{i b z} O B).
       refine (ooextendable_homotopic _ (O_functor f o to O A) _ _).
       1:apply to_O_natural.

@@ -93,8 +93,8 @@ Definition Univalence_implies_WeakFunext : Univalence_type -> WeakFunext
   := NaiveNondepFunext_implies_WeakFunext o @Univalence_implies_FunextNondep.
 
 Definition Univalence_type_implies_Funext_type
-           `{ua : Univalence_type@{j jplusone} }
-  : Funext_type@{i j j}
+           `{ua : Univalence_type@{j} }
+  : Funext_type@{i j}
   := NaiveNondepFunext_implies_Funext
        (@Univalence_implies_FunextNondep ua).
 

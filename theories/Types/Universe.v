@@ -52,8 +52,8 @@ Definition eta_path_universe_uncurried {A B : Type} (p : A = B)
   : path_universe_uncurried (equiv_path A B p) = p
   := eissect (equiv_path A B) p.
 
-Definition isequiv_path_universe {A B : Type}
-  : IsEquiv (@path_universe_uncurried A B)
+Definition isequiv_path_universe@{u} {A B : Type@{u}}
+  : IsEquiv (@path_universe_uncurried@{u} A B)
   := _.
 
 Definition equiv_path_universe (A B : Type) : (A <~> B) <~> (A = B)
@@ -506,7 +506,7 @@ Definition equiv_induction_inv_comp {U : Type} (P : forall V, V <~> U -> Type)
 
 (** ** Based equivalence types *)
 
-#[export] Instance contr_basedequiv@{u +} {X : Type@{u}}
+#[export] Instance contr_basedequiv@{u} {X : Type@{u}}
   : Contr {Y : Type@{u} & X <~> Y}.
 Proof.
   apply (Build_Contr _ (X; equiv_idmap)).
@@ -514,7 +514,7 @@ Proof.
   exact (equiv_induction _ idpath).
 Defined.
 
-#[export] Instance contr_basedequiv'@{u +} {X : Type@{u}}
+#[export] Instance contr_basedequiv'@{u} {X : Type@{u}}
   : Contr {Y : Type@{u} & Y <~> X}.
 Proof.
   (* The next line is used so that Coq can figure out the type of (X; equiv_idmap). *)

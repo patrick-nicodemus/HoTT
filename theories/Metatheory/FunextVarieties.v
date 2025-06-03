@@ -30,16 +30,16 @@ Definition WeakFunext :=
    [Funext -> NaiveFunext -> WeakFunext] and [NaiveFunext -> NaiveNondepFunext].
    None of these do anything fiddly with the universes either. *)
 
-Definition Funext_implies_NaiveFunext@{i j max}
-  : Funext_type@{i j max} -> NaiveFunext@{i j max}.
+Definition Funext_implies_NaiveFunext@{i j}
+  : Funext_type@{i j} -> NaiveFunext@{i j}.
 Proof.
   intros fe A P f g h.
   unfold Funext_type in *.
   exact ((@apD10 A P f g)^-1 h).
 Defined.
 
-Definition NaiveFunext_implies_WeakFunext@{i j max}
-  : NaiveFunext@{i j max} -> WeakFunext@{i j max}.
+Definition NaiveFunext_implies_WeakFunext@{i j}
+  : NaiveFunext@{i j} -> WeakFunext@{i j}.
 Proof.
   intros nf A P Pc.
   apply (Build_Contr _ (fun x => center (P x))).
@@ -47,8 +47,8 @@ Proof.
   apply contr.
 Defined.
 
-Definition NaiveFunext_implies_NaiveNondepFunext@{i j max}
-  : NaiveFunext@{i j max} -> NaiveNondepFunext@{i j max}
+Definition NaiveFunext_implies_NaiveNondepFunext@{i j}
+  : NaiveFunext@{i j} -> NaiveNondepFunext@{i j}
   := fun nf A B f g => nf A (fun _ => B) f g.
 
 (** The non-obvious directions are that [WeakFunext] implies Funext and that [NaiveNondepFunext] implies [WeakFunext] (and hence all four are logically equivalent). *)
@@ -102,8 +102,8 @@ Section Homotopies.
 End Homotopies.
 
 (** Now the proof is fairly easy; we can just use the same induction principle on both sides.  This proof also preserves all the universes. *)
-Theorem WeakFunext_implies_Funext@{i j max}
-  : WeakFunext@{i j max} -> Funext_type@{i j max}.
+Theorem WeakFunext_implies_Funext@{i j}
+  : WeakFunext@{i j} -> Funext_type@{i j}.
 Proof.
   intros wf; hnf; intros A B f g.
   refine (isequiv_adjointify (@apD10 A B f g)
@@ -143,15 +143,15 @@ Proof.
 Defined.
 
 (** Therefore, naive non-dependent funext also implies full funext.  Interestingly, this requires the universe of the assumption codomain to be not just that of the conclusion codomain, but the max of that universe with the domain universe (which is unchanged). *)
-Definition NaiveNondepFunext_implies_Funext@{i j max}
-  : NaiveNondepFunext@{i max max} -> Funext_type@{i j max}
+Definition NaiveNondepFunext_implies_Funext@{i j}
+  : NaiveNondepFunext@{i max(i,j)} -> Funext_type@{i j}
   := WeakFunext_implies_Funext o NaiveNondepFunext_implies_WeakFunext.
 
 (** ** Functional extensionality is downward closed *)
 
 (** If universe [U_i] is functionally extensional, then so are universes [U_i'] for [i' ≤ i]. *)
-Lemma Funext_downward_closed@{i j max i' j' max' | i <= max, j <= max, i' <= max', j' <= max', i' <= i, j' <= j}
-  `{H : Funext_type@{i j max}} : Funext_type@{i' j' max'}.
+Lemma Funext_downward_closed@{i j i' j'|i' <= i, j' <= j}
+  `{H : Funext_type@{i j}} : Funext_type@{i' j'}.
 Proof.
   hnf in *.
   (* Here we make use of cumulativity. *)

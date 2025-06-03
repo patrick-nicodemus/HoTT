@@ -79,7 +79,7 @@ Instance isequiv_unit_name@{i j} `{Funext} (A : Type@{i})
 : @IsEquiv@{i j} _ (Unit -> _) (fun (a:A) => unit_name a).
 Proof.
   refine (isequiv_adjointify _ (fun f : Unit -> _ => f tt) _ _).
-  - intros f; apply path_forall@{i i j}; intros x.
+  - intros f; apply path_forall@{i j}; intros x.
     apply ap@{i i}, path_unit.
   - intros a; reflexivity.
 Defined.

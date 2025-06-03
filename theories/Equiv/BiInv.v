@@ -36,7 +36,7 @@ Proof.
   - apply biinv_isequiv.
 Defined.
 
-Instance ishprop_biinv `{Funext} `(f : A -> B) : IsHProp (BiInv f) | 0.
+Instance ishprop_biinv@{uA uB} `{Funext} {A:Type@{uA}} {B:Type@{uB}}`(f : A -> B) : IsHProp (BiInv f) | 0.
 Proof.
   apply hprop_inhabited_contr.
   intros bif; pose (fe := isequiv_biinv f bif).
@@ -46,7 +46,8 @@ Proof.
   - by apply contr_sect_equiv.
 Defined.
 
-Definition equiv_biinv_isequiv `{Funext} `(f : A -> B)
+Definition equiv_biinv_isequiv@{uA uB} `{Funext}
+  {A:Type@{uA}} {B:Type@{uB}} `(f : A -> B)
   : BiInv f <~> IsEquiv f.
 Proof.
   apply equiv_iff_hprop_uncurried, iff_biinv_isequiv.

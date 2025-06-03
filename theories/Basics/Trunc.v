@@ -350,7 +350,7 @@ Proof.
 Defined.
 
 (** This could be an [Instance] (with very high priority, so it doesn't get applied trivially).  However, we haven't given typeclass search any hints allowing it to solve goals like [m <= n], so it would only ever be used trivially.  *)
-Definition istrunc_leq {m n} (Hmn : m <= n) `{IsTrunc m A}
+Definition istrunc_leq@{u} {m n} (Hmn : m <= n) {A:Type@{u}} `{IsTrunc m A}
   : IsTrunc n A.
 Proof.
   generalize dependent A; generalize dependent m.
@@ -366,8 +366,9 @@ Defined.
 
 (** In particular, a contractible type, hprop, or hset is truncated at all higher levels.  We don't allow these to be used as idmaps, since there would be no point to it. *)
 
-Definition istrunc_contr {n} {A} `{Contr A} : IsTrunc n.+1 A
+Definition istrunc_contr@{u} {n} {A : Type@{u}} `{Contr A} : IsTrunc n.+1 A
   := (@istrunc_leq (-2) n.+1 tt _ _).
+
 
 Definition istrunc_hprop {n} {A} `{IsHProp A} : IsTrunc n.+2 A
   := (@istrunc_leq (-1) n.+2 tt _ _).
@@ -382,7 +383,7 @@ Definition istrunc_hset {n} {A} `{IsHSet A}
 #[export] Hint Immediate istrunc_hset : typeclass_instances.
 
 (** Equivalence preserves truncation (this is, of course, trivial with univalence).  This is not an [Instance] because it causes infinite loops. *)
-Definition istrunc_isequiv_istrunc A {B} (f : A -> B)
+Definition istrunc_isequiv_istrunc@{u0 u1} (A : Type@{u0}) {B: Type@{u1}} (f : A -> B)
   `{IsTrunc n A} `{IsEquiv A B f}
   : IsTrunc n B.
 Proof.
@@ -515,7 +516,7 @@ Proof.
   intro f.  apply path_forall.  intro a.  apply contr.
 Defined.
 
-Instance istrunc_forall `{Funext} `{P : A -> Type} `{forall a, IsTrunc n (P a)}
+Instance istrunc_forall@{uA uP} `{Funext} {A: Type@{uA}} `{P : A -> Type@{uP}} `{forall a, IsTrunc n (P a)}
   : IsTrunc n (forall a, P a) | 100.
 Proof.
   generalize dependent P.
@@ -524,7 +525,8 @@ Proof.
   - exact contr_forall.
   (* case n = n'.+1 *)
   - apply istrunc_S.
-    intros f g; exact (istrunc_isequiv_istrunc@{u1 u1} _ (apD10@{_ _ u1} ^-1)).
+    intros f g;
+      exact (istrunc_isequiv_istrunc@{_ _} _ (apD10@{_ _} ^-1)).
 Defined.
 
 (** Truncatedness is an hprop. *)

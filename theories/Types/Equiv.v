@@ -111,14 +111,14 @@ Section AssumeFunext.
   Defined.
 
   (** It also follows that paths of equivalences are equivalent to paths of functions. *)
-  Lemma equiv_path_equiv {A B : Type} (e1 e2 : A <~> B)
+  Lemma equiv_path_equiv@{uA uB} {A : Type@{uA}} {B : Type@{uB}} (e1 e2 : A <~> B)
     : (e1 = e2 :> (A -> B)) <~> (e1 = e2 :> (A <~> B)).
   Proof.
     equiv_via ((issig_equiv A B) ^-1 e1 = (issig_equiv A B) ^-1 e2).
     2: symmetry; rapply equiv_ap.
     exact (equiv_path_sigma_hprop ((issig_equiv A B)^-1 e1) ((issig_equiv A B)^-1 e2)).
   Defined.
-
+  
   Definition path_equiv {A B : Type} {e1 e2 : A <~> B}
     : (e1 = e2 :> (A -> B)) -> (e1 = e2 :> (A <~> B))
     := equiv_path_equiv e1 e2.

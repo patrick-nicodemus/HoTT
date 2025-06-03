@@ -7,8 +7,8 @@ Local Set Universe Minimization ToSet.
 (** ** Definition *)
 
 (** [iff A B], written [A <-> B], expresses the logical equivalence of [A] and [B] *)
-Definition iff (A B : Type) := prod (A -> B) (B -> A).
-
+Definition iff (A : Type) (B : Type) := prod (A -> B) (B -> A).
+        
 Notation "A <-> B" := (iff A B) : type_scope.
 
 (** ** Basic Properties *)

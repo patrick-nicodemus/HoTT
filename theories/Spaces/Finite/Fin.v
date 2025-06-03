@@ -152,7 +152,7 @@ Definition fin_transpose_last_two_rest (n : nat) (k : Fin n)
 
 (** *** Swap the last element with [k]. *)
 
-Fixpoint fin_transpose_last_with (n : nat) (k : Fin n.+1)
+Fixpoint fin_transpose_last_with@{} (n : nat) (k : Fin n.+1)
   : Fin n.+1 <~> Fin n.+1.
 Proof.
   destruct k as [k|].
@@ -266,7 +266,7 @@ Proof.
   assert (p' := (moveL_equiv_V _ _ p)^).
   exists y.
   destruct y as [y|[]].
-  + simple refine (equiv_unfunctor_sum_l@{Set Set Set Set Set Set}
+  + simple refine (equiv_unfunctor_sum_l@{Set Set Set Set}
               (fin_transpose_last_with m (inl y) oE e)
               _ _ ; _).
     { intros a. ev_equiv.
@@ -285,7 +285,7 @@ Proof.
     * rewrite unfunctor_sum_l_beta.
       apply fin_transpose_last_with_invol.
     * exact (fin_transpose_last_with_last _ _ @ p^).
-  + simple refine (equiv_unfunctor_sum_l@{Set Set Set Set Set Set} e _ _ ; _).
+  + simple refine (equiv_unfunctor_sum_l@{Set Set Set Set} e _ _ ; _).
     { intros a.
       destruct (is_inl_or_is_inr (e (inl a))) as [l|r].
       - exact l.

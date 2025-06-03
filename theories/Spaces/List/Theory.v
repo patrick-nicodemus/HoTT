@@ -200,15 +200,15 @@ Proof.
 Defined.
 
 (** An element of a [list_map2] is the result of applying the function to some elements of the original lists. *)
-Definition inlist_map2@{i j k u | i <= u, j <= u, k <= u}
+Definition inlist_map2@{i j k|}
   {A : Type@{i}} {B : Type@{j}} {C : Type@{k}}
   (f : A -> B -> C) defl defr l1 l2 x
-  : InList x (list_map2 f defl defr l1 l2) -> length l1 = length l2
+  :InList@{k} x (list_map2 f defl defr l1 l2) -> length l1 = length l2
     -> { y : A & { z : B &
-                        prod@{k u} ((f y z) = x) (InList y l1 * InList z l2) } }.
+                        prod@{_ _} ((f y z) = x) (InList@{i} y l1 * InList@{j} z l2) } }.
 Proof.
   intros H p.
-  induction l1 as [|y l1 IHl1] in l2, x, H, p |- * using list_ind@{i u}.
+  induction l1 as [|y l1 IHl1] in l2, x, H, p |- * using list_ind.
   - destruct l2.
     1: contradiction.
     inversion p.
@@ -407,7 +407,7 @@ Defined.
 
 (** The index of an element in a list is the [n] such that the [nth'] element is the element. *)
 Definition index_of@{i|} {A : Type@{i}} (l : list A) (x : A)
-  : InList x l
+  : InList@{i} x l
     -> sig@{Set i} (fun n : nat => { H : n < length l & nth' l n H = x }).
 Proof.
   induction l as [|a l IHl] using list_ind@{i i}.
@@ -608,7 +608,7 @@ Defined.
 
 (** An element of a [drop] is an element of the original list. *)
 Definition drop_inlist@{i|} {A : Type@{i}} (n : nat) (l : list A) (x : A)
-  : InList x (drop n l) -> InList x l.
+  : InList@{i} x (drop n l) -> InList x l.
 Proof.
   intros H.
   induction l as [|a l IHl] in n, H, x |- * using list_ind@{i i}.
@@ -670,7 +670,7 @@ Definition length_take_leq {A : Type} {n : nat} (l : list A)
 
 (** An element of a [take] is an element of the original list. *)
 Definition take_inlist@{i|} {A : Type@{i}} (n : nat) (l : list A) (x : A)
-  : InList x (take n l) -> InList x l.
+  : InList@{i} x (take n l) -> InList x l.
 Proof.
   intros H.
   induction l as [|a l IHl] in n, H, x |- * using list_ind@{i i}.
@@ -780,9 +780,9 @@ Fixpoint list_filter@{u v|} {A : Type@{u}} (l : list A) (P : A -> Type@{v})
         else list_filter l P dec
     end.
 
-Definition inlist_filter@{u v k | u <= k, v <= k} {A : Type@{u}} (l : list A)
+Definition inlist_filter@{u v|} {A : Type@{u}} (l : list A)
   (P : A -> Type@{v}) (dec : forall x, Decidable (P x)) (x : A)
-  : iff@{u k k} (InList x (list_filter l P dec)) (InList x l /\ P x).
+  : iff@{u _} (InList x (list_filter l P dec)) (InList@{u} x l /\ P x).
 Proof.
   simple_list_induction l a l IHl.
   - simpl.
@@ -793,13 +793,13 @@ Proof.
     napply iff_compose.
     2: { apply iff_inverse.
          apply iff_equiv.
-         exact (sum_distrib_r@{k k k _ _ _ k k} _ _ _). }
+         exact (sum_distrib_r _ _ _). }
     destruct (dec a) as [p|p].
     + simpl.
       snapply iff_compose.
       1: exact (sum (a = x) (prod (InList@{u} x l) (P x))).
       1: split; apply functor_sum; only 1,3: exact idmap; apply IHl.
-      split; apply functor_sum@{k k k k}; only 2,4: exact idmap.
+      split; apply functor_sum; only 2,4: exact idmap.
       * intros [].
         exact (idpath, p).
       * exact fst.
@@ -807,8 +807,8 @@ Proof.
       1: exact IHl.
       apply iff_inverse.
       apply iff_equiv.
-      nrefine (equiv_compose'@{k k k} (sum_empty_l@{k} _) _).
-      snapply equiv_functor_sum'@{k k k k k k}.
+      nrefine (equiv_compose' (sum_empty_l _) _).
+      snapply equiv_functor_sum'.
       2: exact equiv_idmap.
       apply equiv_to_empty.
       by intros [[] r].
@@ -962,7 +962,7 @@ Proof.
 Defined.
 
 Definition inlist_seq@{} (n : nat) x
-  : InList x (seq n) <~> (x < n).
+  : InList@{Set} x (seq n) <~> (x < n).
 Proof.
   simple_induction n n IHn.
   { symmetry; apply equiv_to_empty.
@@ -1033,7 +1033,7 @@ Defined.
 
 (** An element of a repeated list is equal to the repeated element. *)
 Definition inlist_repeat@{i|} {A : Type@{i}} (n : nat) (x y : A)
-  : InList y (repeat x n) -> y = x.
+  : InList@{i} y (repeat x n) -> y = x.
 Proof.
   induction n as [|n IHn].
   1:contradiction.

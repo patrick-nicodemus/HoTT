@@ -462,26 +462,41 @@ Definition unfunctor_sum_r {A A' B B' : Type} (h : A + B -> A' + B')
 : B -> B'
   := fun b => un_inr (h (inr b)) (Hb b).
 
-Definition unfunctor_sum_eta {A A' B B' : Type} (h : A + B -> A' + B')
-           (Ha : forall a:A, is_inl (h (inl a)))
-           (Hb : forall b:B, is_inr (h (inr b)))
-: functor_sum (unfunctor_sum_l h Ha) (unfunctor_sum_r h Hb) == h.
+Definition unfunctor_sum_eta@{uA uA' uB uB'}
+  {A : Type@{uA}}
+  {A': Type@{uA'}}
+  {B : Type@{uB}}
+  {B' : Type@{uB'}}
+  (h : A + B -> A' + B')
+  (Ha : forall a:A, is_inl (h (inl a)))
+  (Hb : forall b:B, is_inr (h (inr b)))
+: functor_sum@{_ _ _ _} (unfunctor_sum_l@{uA uA' uB uB'} h Ha) (unfunctor_sum_r@{uA uA' uB uB'} h Hb) == h.
 Proof.
   intros [a|b]; simpl.
   - unfold unfunctor_sum_l; apply inl_un_inl.
   - unfold unfunctor_sum_r; apply inr_un_inr.
 Defined.
 
-Definition unfunctor_sum_l_beta {A A' B B' : Type} (h : A + B -> A' + B')
-           (Ha : forall a:A, is_inl (h (inl a)))
-: inl o unfunctor_sum_l h Ha == h o inl.
+Definition unfunctor_sum_l_beta@{uA uA' uB uB'}
+  {A : Type@{uA}}
+  {A': Type@{uA'}}
+  {B : Type@{uB}}
+  {B': Type@{uB'}}
+  (h : A + B -> A' + B')
+  (Ha : forall a:A, is_inl (h (inl a)))
+: inl o unfunctor_sum_l@{uA uA' uB uB'} h Ha == h o inl.
 Proof.
   intros a; unfold unfunctor_sum_l; apply inl_un_inl.
 Defined.
 
-Definition unfunctor_sum_r_beta {A A' B B' : Type} (h : A + B -> A' + B')
+Definition unfunctor_sum_r_beta@{uA uA' uB uB'}
+  {A : Type@{uA}}
+  {A': Type@{uA'}}
+  {B : Type@{uB}}
+  {B': Type@{uB'}}
+  (h : A + B -> A' + B')
            (Hb : forall b:B, is_inr (h (inr b)))
-: inr o unfunctor_sum_r h Hb == h o inr.
+: inr o unfunctor_sum_r@{uA uA' uB uB'} h Hb == h o inr.
 Proof.
   intros b; unfold unfunctor_sum_r; apply inr_un_inr.
 Defined.
@@ -625,7 +640,11 @@ Definition iff_functor_sum {A A' B B' : Type} (f : A <-> A') (g : B <-> B')
 
 (** ** Unfunctoriality on equivalences *)
 
-Instance isequiv_unfunctor_sum_l {A A' B B' : Type}
+Instance isequiv_unfunctor_sum_l@{uA uA' uB uB'}
+  {A : Type@{uA}}
+  {A': Type@{uA'}}
+  {B : Type@{uB}}
+  {B' : Type@{uB'}}
            (h : A + B <~> A' + B')
            (Ha : forall a:A, is_inl (h (inl a)))
            (Hb : forall b:B, is_inr (h (inr b)))
@@ -650,7 +669,11 @@ Proof.
     apply eissect.
 Defined.
 
-Definition equiv_unfunctor_sum_l {A A' B B' : Type}
+Definition equiv_unfunctor_sum_l@{uA uA' uB uB'}
+  {A : Type@{uA}}
+  {A': Type@{uA'}}
+  {B : Type@{uB}}
+  {B' : Type@{uB'}}
            (h : A + B <~> A' + B')
            (Ha : forall a:A, is_inl (h (inl a)))
            (Hb : forall b:B, is_inr (h (inr b)))
@@ -959,7 +982,7 @@ Instance ishset_sum `{HA : IsHSet A, HB : IsHSet B} : IsHSet (A + B) | 100
 
 (** Sums don't preserve hprops in general, but they do for disjoint sums. *)
 
-Instance ishprop_sum A B `{IsHProp A} `{IsHProp B}
+Instance ishprop_sum@{uA uB} (A :Type@{uA}) (B :Type@{uB}) `{IsHProp A} `{IsHProp B}
 : (A -> B -> Empty) -> IsHProp (A + B).
 Proof.
   intros H.

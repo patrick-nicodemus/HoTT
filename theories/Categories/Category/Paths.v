@@ -76,8 +76,10 @@ Section path_category.
     repeat (intro || apply path_forall).
     apply identity_unique; cbn in *; auto with morphism.
     destruct C, D; cbn in *.
-    path_induction; cbn in *.
-    auto.
+    simpl.
+    intros s d m.
+    destruct proj1, proj0, proj2. simpl.
+    apply right_identity.
   Qed.
 
   Definition path_precategory''_T__of__path_precategory'_T `{Funext} C D

@@ -585,7 +585,8 @@ Definition equiv_sig_coind
 
 (** ** Sigmas preserve truncation *)
 
-Instance istrunc_sigma `{P : A -> Type}
+Instance istrunc_sigma@{uA uP} {A:Type@{uA}}
+  `{P : A -> Type@{uP}}
   `{IsTrunc n A} `{forall a, IsTrunc n (P a)}
   : IsTrunc n (sig P) | 100.
 Proof.
@@ -612,14 +613,15 @@ Defined.
 (** ** Subtypes (sigma types whose second components are hprops) *)
 
 (** To prove equality in a subtype, we only need equality of the first component. *)
-Definition path_sigma_hprop {A : Type} {P : A -> Type}
+Definition path_sigma_hprop@{uA uP} {A : Type@{uA}} {P : A -> Type@{uP}}
   `{forall x, IsHProp (P x)}
   (u v : sig P)
   : u.1 = v.1 -> u = v
   := path_sigma_uncurried P u v o pr1^-1.
 
-Instance isequiv_path_sigma_hprop {A P} `{forall x : A, IsHProp (P x)} {u v : sig P}
-  : IsEquiv (@path_sigma_hprop A P _ u v) | 100
+Instance isequiv_path_sigma_hprop@{uA uP} {A : Type@{uA}}
+  {P : A -> Type@{uP}} `{forall x : A, IsHProp (P x)} {u v : sig P}
+  : IsEquiv (@path_sigma_hprop@{uA uP} A P _ u v) | 100
   := isequiv_compose _ _.
 
 #[export]
